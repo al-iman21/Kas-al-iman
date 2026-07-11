@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Buku Kas Digital - Masjid Al Iman</title>
+    
+    <!-- Pengaturan agar bisa diinstal di HP Android / iPhone -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0284c7">
+    
+    <!-- Link ke Manifest untuk Fitur PWA (Aplikasi HP) -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Script untuk mendaftarkan Service Worker -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('sw.js').then(function(registration) {
+            console.log('ServiceWorker berhasil didaftarkan.');
+          }, function(err) {
+            console.log('ServiceWorker gagal didaftarkan: ', err);
+          });
+        });
+      }
+    </script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --biru-langit-utama: #0ea5e9;
+            --biru-langit-terang: #e0f2fe;
+            --biru-langit-sedang: #bae6fd;
+            --biru-tua-kontras: #0369a1;
+            --teks-gelap-pekat: #0f172a;
+            --teks-abu-jelas: #475569;
+            --latar-halaman: #f8fafc;
+            --lengkungan-kotak: 20px;
+            
+            /* Ukuran huruf ekstra besar khusus lansia */
+            --huruf-paling-besar: 26px;
+            --huruf-tombol: 18px;
+            --huruf-penjelasan: 16px;
+        }
+
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--latar-halaman);
+            background-image: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            color: var(--teks-gelap-pekat);
+            min-height: 100vh;
+            padding: 12px;
+            font-size: var(--huruf-penjelasan);
+        }
+
+        /* --- HALAMAN KUNCI KEAMANAN (MASUK) --- */
+        #layar-kunci {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #0284c7 0%, #1e3a8a 100%);
+            z-index: 9999;
+            display: flex; justify-content: center; align-items: center; flex-direction: column;
+            padding: 15px;
+        }
+        .kotak-pembuka {
+            background: white; padding: 35px 20px; border-radius: var(--lengkungan-kotak);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+            text-align: center; max-width: 450px; width: 100%;
+            border-bottom: 10px solid #0284c7;
+        }
+        .kotak-pembuka h2 { color: var(--teks-gelap-pekat); margin-bottom: 8px; font-size: var(--huruf-paling-besar); font-weight: 800; }
+        .kotak-pembuka p.alamat { color: var(--teks-abu-jelas); font-size: 14px; margin-bottom: 25px; line-height: 1.5; }
+        .kotak-pembuka input {
+            width: 100%; padding: 20px; border: 4px solid #cbd5e1; border-radius: 12px;
+            margin-bottom: 20px; font-size: 28px; text-align: center; font-weight: 800; letter-spacing: 10px;
+            outline: none; background: #f8fafc;
+        }
+        .kotak-pembuka input:focus { border-color: var(--biru-langit-utama); background: white; }
+        .kotak-pembuka button {
+            width: 100%; padding: 20px; background: var(--biru-tua-kontras); color: white;
+            border: none; border-radius: 12px; font-size: var(--huruf-tombol); font-weight: bold; cursor: pointer;
+            box-shadow: 0 6px 15px rgba(3, 105, 161, 0.3);
+        }
+        
+        #wadah-aplikasi { display: none; max-width: 1100px; margin: 0 auto; }
+
+        /* --- KEPALA APLIKASI (HEADER) --- */
+        .kepala-aplikasi { 
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); 
+            padding: 20px; border-radius: var(--lengkungan-kotak); color: white; margin-bottom: 15px; 
+            border-bottom: 6px solid #bae6fd; display: flex; flex-direction: column; gap: 12px; text-align: center;
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.15);
+        }
+        .judul-masjid h1 { font-size: 24px; font-weight: 800; color: white; }
+        .judul-masjid p { font-size: 13px; color: #e0f2fe; margin-top: 4px; line-height: 1.4; }
+        .info-pengurus-kanan { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.15); padding: 12px; border-radius: 10px; font-size: 14px; }
+
+        /* --- MENU UTAMA RAKSASA KHUSUS HP (RAMAH LANSIA) --- */
+        .pilihan-menu-utama { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
+        .tombol-menu-besar { 
+            background: white; color: var(--teks-gelap-pekat); border: 3px solid #cbd5e1; 
+            padding: 22px 10px; font-size: var(--huruf-tombol); font-weight: 800; border-radius: var(--lengkungan-kotak); 
+            cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.03); transition: all 0.15s; 
+        }
+        .tombol-menu-besar i { font-size: 30px; color: var(--biru-tua-kontras); }
+        .tombol-menu-besar.terpilih { background: var(--biru-tua-kontras); color: white; border-color: var(--biru-tua-kontras); }
+        .tombol-menu-besar.terpilih i { color: white; }
+        
+        /* Baris Pengurus & Tombol Pengaman */
+        .baris-pengurus { grid-column: span 2; background: #e0f2fe; padding: 12px; border-radius: 14px; border: 2px solid #bae6fd; display: flex; align-items: center; gap: 10px; }
+        .baris-pengurus label { font-size: 14px; font-weight: 800; color: var(--biru-tua-kontras); white-space: nowrap; }
+        .kolom-isi-nama { width: 100%; padding: 10px; border-radius: 8px; border: 2px solid #0369a1; font-weight: 700; font-size: 15px; outline: none; }
+        
+        .grup-tombol-cadangan { grid-column: span 2; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; background: #f1f5f9; padding: 10px; border-radius: 14px; }
+        .tombol-kecil-cadangan { padding: 12px 6px; font-size: 12px; font-weight: 800; border: none; border-radius: 8px; cursor: pointer; color: white; display: flex; align-items: center; justify-content: center; gap: 6px; }
+
+        /* --- HALAMAN KONTEN --- */
+        .bagian-halaman { display: none; }
+        .bagian-halaman.aktif { display: block; }
+
+        /* --- KARTU INDIKATOR SALDO --- */
+        .judul-sub-halaman { font-size: 19px; font-weight: 800; color: var(--biru-tua-kontras); margin-bottom: 12px; margin-top: 10px; display: flex; align-items: center; gap: 8px; }
+        .deretan-kartu-saldo { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+        .kartu-saldo-putih { 
+            background: white; border-radius: var(--lengkungan-kotak); padding: 18px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02); border: 3px solid #e2e8f0; border-left: 10px solid var(--biru-tua-kontras); 
+        }
+        .kartu-saldo-putih.warna-masuk { border-left-color: #0d9488; } 
+        .kartu-saldo-putih.warna-keluar { border-left-color: #e11d48; } 
+        .kartu-saldo-putih.warna-sisa { border-left-color: #2563eb; }
+        .kartu-saldo-putih.warna-total-data { border-left-color: #4f46e5; }
+        .kartu-saldo-putih span.tulisan-kecil { font-size: 12px; color: var(--teks-abu-jelas); text-transform: uppercase; font-weight: 800; display: block; margin-bottom: 6px; letter-spacing: 0.5px; }
+        .kartu-saldo-putih h2.angka-saldo-besar { font-size: 26px; font-weight: 800; color: var(--teks-gelap-pekat); }
+        .warna-teks-masuk { color: #0d9488 !important; } .warna-teks-keluar { color: #e11d48 !important; }
+
+        /* --- PAPAN KERJA & FORMULIR ISI DATA --- */
+        .papan-kerja-putih { background: white; border-radius: var(--lengkungan-kotak); padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); border: 3px solid #cbd5e1; margin-bottom: 20px; }
+        .susunan-formulir { display: flex; flex-direction: column; gap: 18px; margin-bottom: 15px; }
+        .kotak-isian { display: flex; flex-direction: column; gap: 6px; }
+        .kotak-isian label { font-size: var(--huruf-penjelasan); font-weight: 800; color: var(--teks-gelap-pekat); }
+        .kotak-isian input, .kotak-isian select { 
+            padding: 18px; border-radius: 12px; border: 3px solid #cbd5e1; 
+            font-size: var(--huruf-tombol); font-weight: 700; color: var(--teks-gelap-pekat); outline: none; background-color: #f8fafc;
+        }
+        .kotak-isian input:focus, .kotak-isian select:focus { border-color: var(--biru-langit-utama); background-color: #fff; }
+        .petunjuk-isian { font-size: 13px; color: var(--teks-abu-jelas); font-weight: 600; margin-top: 2px; }
+
+        /* KOTAK FILTER SORTING */
+        .kotak-penyaring { background: #e0f2fe; padding: 15px; border-radius: 14px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; border: 2px solid #bae6fd; }
+        .kotak-penyaring select { padding: 16px; border-radius: 10px; border: 2px solid #0369a1; font-size: 16px; font-weight: 700; outline: none; width: 100%; color: var(--teks-gelap-pekat); }
+        
+        /* TOMBOL AKSI SELESAI */
+        .grup-tombol-aksi { display: flex; flex-direction: column; gap: 10px; }
+        .tombol-utama-lebar { 
+            width: 100%; padding: 20px; color: white; border: none; border-radius: 12px; 
+            font-size: var(--huruf-tombol); font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .tombol-biru-langit { background: #0284c7; }
+        .tombol-biru-tua { background: #1e3a8a; }
+        .tombol-hijau-daun { background: #0d9488; }
+        .tombol-abu-abu { background: #64748b; }
+
+        /* --- STRUKTUR TABEL LAPORAN --- */
+        .wadah-tabel-gulung { overflow-x: auto; margin-top: 10px; border-radius: 12px; border: 2px solid #cbd5e1; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; background: white; }
+        th { background: #e2e8f0; color: var(--teks-gelap-pekat); font-weight: 800; padding: 14px 10px; font-size: 12px; text-align: left; border-bottom: 3px solid #cbd5e1; text-transform: uppercase; }
+        td { padding: 14px 10px; border-bottom: 1px solid #e2e8f0; font-weight: 700; color: var(--teks-gelap-pekat); }
+        
+        /* Tombol kelola di baris tabel */
+        .tombol-kelola-baris { display: flex; gap: 6px; }
+        .tombol-mini { padding: 12px 14px; border-radius: 8px; border: none; color: white; cursor: pointer; font-size: 13px; font-weight: bold; display: inline-flex; align-items: center; gap: 4px; }
+        .warna-merah-hapus { background: #e11d48; } .warna-biru-ubah { background: #2563eb; }
+
+        /* KOTAK REKAPITULASI BAWAH */
+        .kotak-rekap-buku { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; background: #fff; padding: 15px; border-radius: 14px; margin-bottom: 15px; border: 2px solid #cbd5e1; }
+        .item-rekap { display: flex; flex-direction: column; gap: 4px; background: #f8fafc; padding: 12px; border-radius: 8px; text-align: center; border: 1px solid #e2e8f0; }
+        .item-rekap.gabung-dua { grid-column: span 2; }
+        .label-rekap { font-size: 11px; font-weight: 800; color: var(--teks-abu-jelas); text-transform: uppercase; }
+        .angka-rekap { font-size: 17px; font-weight: 800; }
+
+        /* KOTAK PAJAK TAHUNAN */
+        .kotak-spt-pajak { background: white; border: 2px solid #cbd5e1; border-radius: 14px; padding: 15px; margin-bottom: 12px; }
+        .kotak-spt-pajak h4 { border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 12px; color: var(--biru-tua-kontras); font-size: 16px; font-weight: 800; }
+        .baris-spt { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; font-weight: 700; }
+        .baris-spt.total-akhir { font-weight: 800; font-size: 16px; border-top: 2px dashed #cbd5e1; padding-top: 8px; margin-top: 8px; color: var(--biru-tua-kontras); }
+
+        /* --- TAMPILAN KHUSUS KOMPUTER / LAPTOP (LAYAR LEBAR) --- */
+        @media (min-width: 768px) {
+            body { padding: 25px; }
+            .kepala-aplikasi { flex-direction: row; text-align: left; padding: 20px 30px; justify-content: space-between; align-items: center; }
+            .pilihan-menu-utama { grid-template-columns: repeat(6, 1fr); }
+            .grup-tombol-cadangan { grid-column: span 6; grid-template-columns: repeat(4, 1fr); width: auto; margin-left: auto; gap: 10px; }
+            .baris-pengurus { grid-column: span 6; width: 320px; margin-left: auto; }
+            .deretan-kartu-saldo { grid-template-columns: repeat(3, 1fr); flex-direction: row; flex-wrap: wrap; }
+            .deretan-kartu-saldo > div { flex: 1; min-width: 250px; }
+            .susunan-formulir { grid-template-columns: repeat(2, 1fr); }
+            .kotak-rekap-buku { grid-template-columns: repeat(4, 1fr); }
+            .item-rekap.gabung-dua { grid-column: span 1; }
+            .kotak-penyaring { flex-direction: row; align-items: center; }
+            .kotak-penyaring select { width: auto; flex: 1; }
+            .grup-tombol-aksi { flex-direction: row; }
+            .tombol-utama-lebar { width: auto; padding: 16px 32px; }
+        }
+
+        /* --- TAMPILAN KHUSUS KALAU KERTAS DICETAK (PRINT) --- */
+        @media print {
+            @page { size: A4 landscape; margin: 15mm; }
+            body { background: white !important; padding: 0 !important; color: black !important; font-size: 12px; }
+            .no-cetak { display: none !important; } .hanya-cetak { display: block !important; }
+            .header-kertas-cetak { text-align: center; border-bottom: 5px double black; margin-bottom: 20px; padding-bottom: 15px; }
+            .header-kertas-cetak h1 { font-size: 26px; margin: 0; color: #000; font-weight: 800; }
+            .header-kertas-cetak h2 { font-size: 16px; margin: 5px 0; font-weight: bold; text-transform: uppercase; }
+            .papan-kerja-putih, .kotak-rekap-buku, .kotak-spt-pajak { box-shadow: none; border: none; padding: 0; }
+            .kotak-rekap-buku { border: 1px solid black; margin-bottom: 15px; padding: 10px; display: grid; grid-template-columns: repeat(4, 1fr); }
+            .item-rekap { border: none; background: none; padding: 0; text-align: left; }
+            .kotak-spt-pajak { border: 1px solid black; padding: 15px; break-inside: avoid; margin-bottom: 15px; }
+            table { width: 100%; border-collapse: collapse; }
+            th, td { border: 1px solid black; padding: 8px !important; color: black; }
+            th { background-color: #f1f5f9 !important; }
+            .tanda-tangan-bawah { margin-top: 40px; display: flex; justify-content: flex-end; page-break-inside: avoid; }
+            .kotak-ttd { text-align: center; width: 250px; }
+            .garis-nama-terang { margin-top: 60px; font-weight: bold; text-decoration: underline; }
+        }
+        .hanya-cetak { display: none; }
+    </style>
+</head>
+<body>
+
+<!-- HALAMAN KUNCI KEAMANAN (KATA SANDI AWAL) -->
+<div id="layar-kunci">
+    <div class="kotak-pembuka">
+        <!-- Logo Masjid telah ditambahkan ke Layar Kunci -->
+        <img src="Al-iman.jpg.jpeg" alt="Logo Masjid Al Iman" style="width: 100px; height: 100px; object-fit: cover; border-radius: 16px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); background: white; padding: 4px;">
+        <h2>Masjid Al Iman</h2>
+        <p class="alamat">Jl. H.Ung RT 014/02, Kel. Utan Panjang, Kec. Kemayoran, Jakarta Pusat</p>
+        <div style="background: #f0f9ff; padding: 12px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #bae6fd;">
+            <p style="color: var(--biru-tua-kontras); font-size: 14px; font-weight: 700;">Masukkan Kode Rahasia Pengurus:</p>
+        </div>
+        <input type="password" id="sandi-rahasia" inputmode="numeric" pattern="[0-9]*" placeholder="••••••" onkeypress="if(event.key === 'Enter') validasiSandi()">
+        <button onclick="validasiSandi()"><i class="fa fa-lock-open"></i> MASUK KE BUKU KAS</button>
+        <p id="sandi-salah-notif" style="color: #e11d48; font-size: 15px; font-weight: bold; margin-top: 15px; display: none;">
+            <i class="fa fa-exclamation-circle"></i> KODE SALAH! Sila ketik ulang dengan teliti.
+        </p>
+    </div>
+</div>
+
+<!-- WADAH UTAMA APLIKASI -->
+<div id="wadah-aplikasi">
+    
+    <!-- KEPALA APLIKASI (HEADER) -->
+    <div class="kepala-aplikasi no-cetak">
+        <!-- Logo Masjid telah ditambahkan ke Header beserta penyesuaian tata letak -->
+        <div class="merek-sistem" style="display: flex; align-items: center; gap: 15px; justify-content: center;">
+            <img src="Al-iman.jpg.jpeg" alt="Logo Masjid Al Iman" style="width: 60px; height: 60px; object-fit: cover; border-radius: 12px; background: white; padding: 3px;">
+            <div class="judul-masjid" style="text-align: left;">
+                <h1>Buku Catatan Keuangan Masjid Al Iman</h1>
+                <p><i class="fa fa-map-marker-alt"></i> H.Ung RT 014/02 Kel. Utan Panjang, Jakarta Pusat</p>
+            </div>
+        </div>
+        <div class="info-pengurus-kanan">
+            <span><i class="fa fa-user-check"></i> Petugas: <b id="teks-nama-pengurus">Sekretaris</b></span>
+            <button onclick="kunciAplikasi()" style="background: #e11d48; color: white; border: none; padding: 6px 14px; border-radius: 6px; font-weight: bold; margin-left: 15px; cursor: pointer;"><i class="fa fa-key"></i> Kunci</button>
+        </div>
+    </div>
+
+    <!-- MENU UTAMA RAKSASA (PILIHAN NAVIGASI) -->
+    <div class="pilihan-menu-utama no-cetak">
+        <button class="tombol-menu-besar terpilih" onclick="pindahHalaman('ringkasan')"><i class="fa fa-wallet"></i> 1. Lihat Saldo</button>
+        <button class="tombol-menu-besar" onclick="pindahHalaman('catatbaru')"><i class="fa fa-pencil-alt"></i> 2. Catat Uang</button>
+        <button class="tombol-menu-besar" onclick="pindahHalaman('laporanbulanan')"><i class="fa fa-book"></i> 3. Lap. Bulanan</button>
+        <button class="tombol-menu-besar" onclick="pindahHalaman('pajaktahunan')"><i class="fa fa-file-invoice-dollar"></i> 4. Lap. Pajak</button>
+        <button class="tombol-menu-besar" onclick="pindahHalaman('catatanriwayat')"><i class="fa fa-history"></i> 5. Riwayat Kerja</button>
+        <button class="tombol-menu-besar" onclick="pindahHalaman('kiriminternet')"><i class="fa fa-cloud-upload-alt"></i> 6. Kirim Internet</button>
+        
+        <!-- PENGATURAN NAMA PETUGAS LANSIA -->
+        <div class="baris-pengurus">
+            <label for="isian-nama-pengurus">Nama Pengurus:</label>
+            <input type="text" id="isian-nama-pengurus" class="kolom-isi-nama" oninput="sinkronNamaPengurus()" value="Sekretaris">
+        </div>
+
+        <!-- ALAT AMAN DATA -->
+        <div class="grup-tombol-cadangan">
+            <button class="tombol-kecil-cadangan" onclick="cekKondisiSistem()" style="background: #0ea5e9;"><i class="fa fa-heartbeat"></i> Cek Sehat</button>
+            <button class="tombol-kecil-cadangan" onclick="kembalikanOtomatis()" style="background: #0d9488;"><i class="fa fa-history"></i> Ambil Otomatis</button>
+            <button class="tombol-kecil-cadangan" onclick="simpanKeFileFisik()" style="background: #475569;"><i class="fa fa-download"></i> Simpan File</button>
+            <button class="tombol-kecil-cadangan" onclick="document.getElementById('pilih-file-cadangan').click()" style="background: #d97706;"><i class="fa fa-upload"></i> Pasang File</button>
+            <input type="file" id="pilih-file-cadangan" accept=".json" style="display:none;" onchange="bacaFileCadangan(event)">
+        </div>
+    </div>
+
+    <!-- ================= HALAMAN 1: LIHAT SALDO ================= -->
+    <div id="hal-ringkasan" class="bagian-halaman aktif no-cetak">
+        <div class="judul-sub-halaman"><i class="fa fa-chart-line"></i> Kantong Isi Uang Kas Masjid</div>
+        <div class="deretan-kartu-saldo">
+            <div class="kartu-saldo-putih" style="border-left-color: #0284c7;"><span class="tulisan-kecil">1. Kas Umum (Operasional)</span><h2 class="angka-saldo-besar" id="ringkasan-kas-umum">Rp 0</h2></div>
+            <div class="kartu-saldo-putih" style="border-left-color: #ea580c;"><span class="tulisan-kecil">2. Kas Sosial & Kematian</span><h2 class="angka-saldo-besar" id="ringkasan-kas-soskem">Rp 0</h2></div>
+            <div class="kartu-saldo-putih" style="border-left-color: #9333ea;"><span class="tulisan-kecil">3. Kas Renovasi Pembangunan</span><h2 class="angka-saldo-besar" id="ringkasan-kas-renovasi">Rp 0</h2></div>
+        </div>
+
+        <div class="judul-sub-halaman"><i class="fa fa-calendar-check"></i> Rangkuman Perputaran Bulan Ini (<span id="label-bulan-berjalan"></span>)</div>
+        <div class="deretan-kartu-saldo" style="grid-template-columns: repeat(2, 1fr);">
+            <div class="kartu-saldo-putih warna-masuk"><span class="tulisan-kecil">Total Uang Masuk (+)</span><h2 class="angka-saldo-besar warna-teks-masuk" id="ringkasan-masuk-bulan">Rp 0</h2></div>
+            <div class="kartu-saldo-putih warna-keluar"><span class="tulisan-kecil">Total Uang Keluar (-)</span><h2 class="angka-saldo-besar warna-teks-keluar" id="ringkasan-keluar-bulan">Rp 0</h2></div>
+            <div class="kartu-saldo-putih warna-sisa"><span class="tulisan-kecil">Sisa Bersih Uang Bulan Ini</span><h2 class="angka-saldo-besar" id="ringkasan-sisa-bulan">Rp 0</h2></div>
+            <div class="kartu-saldo-putih warna-total-data"><span class="tulisan-kecil">Jumlah Hitungan Catatan</span><h2 class="angka-saldo-besar" id="ringkasan-jumlah-transaksi">0</h2></div>
+        </div>
+
+        <div class="papan-kerja-putih">
+            <div class="judul-sub-halaman" style="margin-top:0;"><i class="fa fa-list-ul"></i> 10 Catatan Transaksi Paling Baru</div>
+            <div class="wadah-tabel-gulung">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tanggal Hari</th>
+                            <th>Pilihan Buku Kas</th>
+                            <th>Penjelasan Pembayaran</th>
+                            <th>Aliran Arus</th>
+                            <th>Jumlah Uang</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabel-terbaru-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= HALAMAN 2: CATAT UANG BARU ================= -->
+    <div id="hal-catatbaru" class="bagian-halaman no-cetak">
+        <div class="papan-kerja-putih" style="max-width: 750px; margin: 0 auto;">
+            <h2 id="judul-formulir-kas" style="color: var(--biru-tua-kontras); margin-bottom: 20px; border-bottom: 4px solid #e2e8f0; padding-bottom: 12px;"><i class="fa fa-edit"></i> Tulis Transaksi Baru</h2>
+            
+            <input type="hidden" id="formulir-id-edit"> 
+            <div class="susunan-formulir">
+                <div class="kotak-isian">
+                    <label>Pilih Tanggal</label>
+                    <input type="date" id="formulir-tanggal">
+                </div>
+                <div class="kotak-isian">
+                    <label>Aliran Uang (Jenis)</label>
+                    <select id="formulir-jenis">
+                        <option value="Masuk">Uang Masuk (Infaq / Sumbangan / Donasi)</option>
+                        <option value="Keluar">Uang Keluar (Belanja / Pengeluaran / Biaya)</option>
+                    </select>
+                </div>
+                <div class="kotak-isian">
+                    <label>Dimasukkan Ke Kas Mana?</label>
+                    <select id="formulir-pilihan-kas">
+                        <option value="Umum">Kas Umum Masjid</option>
+                        <option value="Soskem">Kas Sosial & Kematian</option>
+                        <option value="Renovasi">Kas Renovasi Pembangunan</option>
+                    </select>
+                </div>
+                <div class="kotak-isian">
+                    <label>Jumlah Uang / Nominal Rupiah (Rp)</label>
+                    <input type="number" id="formulir-nominal" placeholder="Contoh isi: 250000" min="1">
+                    <span class="petunjuk-isian">Ketik angka saja, jangan ketik titik atau Rp.</span>
+                </div>
+            </div>
+            <div class="kotak-isian" style="margin-bottom: 25px;">
+                <label>Penjelasan Lengkap / Uraian Keterangan</label>
+                <input type="text" id="formulir-uraian" placeholder="Contoh: Infaq tromol jumat / Membeli sapu dan kipas angin">
+            </div>
+            
+            <div class="grup-tombol-aksi">
+                <button class="tombol-utama-lebar tombol-biru-langit" id="tombol-simpan-kas" onclick="eksekusiSimpanData()"><i class="fa fa-save"></i> SAHKAN DAN SIMPAN DATA</button>
+                <button class="tombol-utama-lebar tombol-abu-abu" id="tombol-batal-ubah" style="display:none;" onclick="matikanModeUbah()">Batal Ubah Data</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= HALAMAN 3: LAPORAN BULANAN ================= -->
+    <div id="hal-laporanbulanan" class="bagian-halaman">
+        <!-- Kepala Cetakan Kertas -->
+        <div class="header-kertas-cetak hanya-cetak">
+            <h1>MASJID AL IMAN</h1>
+            <h2>REKAPITULASI LAPORAN BUKU KAS BULANAN</h2>
+            <p>Alamat: H Ung RT 014/02 Kel Utan Panjang Jakarta Pusat</p>
+            <p style="margin-top:5px;">Periode Rekap: <span id="kertas-periode-bulan"></span> | Jenis Buku: <span id="kertas-jenis-kas"></span></p>
+        </div>
+
+        <div class="papan-kerja-putih">
+            <div class="kotak-penyaring no-cetak">
+                <div style="flex: 1; width: 100%;">
+                    <label style="font-size:13px; font-weight:800; display:block; margin-bottom:4px;">Pilih Bulan Laporan:</label>
+                    <select id="saring-bulan">
+                        <option value="1">Januari</option><option value="2">Februari</option><option value="3">Maret</option>
+                        <option value="4">April</option><option value="5">Mei</option><option value="6">Juni</option>
+                        <option value="7">Juli</option><option value="8">Agustus</option><option value="9">September</option>
+                        <option value="10">Oktober</option><option value="11">November</option><option value="12">Desember</option>
+                    </select>
+                </div>
+                <div style="flex: 1; width: 100%;">
+                    <label style="font-size:13px; font-weight:800; display:block; margin-bottom:4px;">Pilih Tahun Masehi:</label>
+                    <select id="saring-tahun"></select>
+                </div>
+                <div style="flex: 1; width: 100%;">
+                    <label style="font-size:13px; font-weight:800; display:block; margin-bottom:4px;">Pilih Golongan Kas:</label>
+                    <select id="saring-pilihan-kas">
+                        <option value="Semua">Semua Pembukuan Kas (Gabungan)</option><option value="Umum">Kas Umum</option>
+                        <option value="Soskem">Kas Sosial & Kematian</option><option value="Renovasi">Kas Renovasi</option>
+                    </select>
+                </div>
+                <div style="display:flex; gap:8px; width: 100%; margin-top:10px;">
+                    <button class="tombol-utama-lebar tombol-biru-langit" onclick="hitungBukuKasBulanan()" style="padding:14px; flex:1;"><i class="fa fa-calculator"></i> HITUNG SEKARANG</button>
+                </div>
+            </div>
+
+            <!-- Rekapitulasi Angka Hasil Perhitungan -->
+            <div class="kotak-rekap-buku">
+                <div class="item-rekap"><span class="label-rekap">Saldo Awal Bulan</span><span class="angka-rekap" id="rekap-saldo-awal" style="color:var(--teks-gelap-pekat);">Rp 0</span></div>
+                <div class="item-rekap"><span class="label-rekap">Total Uang Masuk</span><span class="angka-rekap warna-teks-masuk" id="rekap-total-masuk">Rp 0</span></div>
+                <div class="item-rekap"><span class="label-rekap">Total Uang Keluar</span><span class="angka-rekap warna-teks-keluar" id="rekap-total-keluar">Rp 0</span></div>
+                <div class="item-rekap gabung-dua"><span class="label-rekap">Saldo Akhir Tabungan</span><span class="angka-rekap" id="rekap-saldo-akhir" style="color:#0284c7;">Rp 0</span></div>
+            </div>
+
+            <!-- Pilihan Cetak Berkas -->
+            <div class="grup-tombol-aksi no-cetak" style="margin-bottom:15px; flex-direction:row;">
+                <button class="tombol-utama-lebar tombol-biru-tua" onclick="bukaJendelaCetak()" style="flex:1;"><i class="fa fa-print"></i> CETAK PADA KERTAS / PDF</button>
+                <button class="tombol-utama-lebar tombol-hijau-daun" onclick="unduhFormatExcel()" style="flex:1;"><i class="fa fa-file-excel"></i> UNDUH BERKAS EXCEL</button>
+            </div>
+
+            <div class="wadah-tabel-gulung">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tanggal Hari</th>
+                            <th>Uraian Penjelasan</th>
+                            <th class="kolom-kas-pilihan">Pilihan Kas</th>
+                            <th>Masuk (+)</th>
+                            <th>Keluar (-)</th>
+                            <th>Saldo Berjalan</th>
+                            <th class="no-cetak" style="text-align: center;">Kelola</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabel-rekap-body">
+                        <tr><td colspan="7" style="text-align:center; padding: 25px;">Sila tekan tombol HITUNG SEKARANG di atas...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="tanda-tangan-bawah hanya-cetak">
+            <div class="kotak-ttd">
+                <p>Jakarta, <span class="tanggal-hari-ini-cetak"></span></p>
+                <p style="margin-top:5px;">Dibuat Oleh Pengurus,</p>
+                <div class="garis-nama-terang nama-pengurus-cetak">Sekretaris</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= HALAMAN 4: LAPORAN PAJAK TAHUNAN ================= -->
+    <div id="hal-pajaktahunan" class="bagian-halaman">
+        <div class="header-kertas-cetak hanya-cetak">
+            <h1>MASJID AL IMAN</h1>
+            <h2>REKAPITULASI TAHUNAN UNTUK KEPERLUAN PAJAK (SPT 1771 TAHUNAN NIRLABA)</h2>
+            <p>Alamat: H Ung RT 014/02 Kel Utan Panjang Jakarta Pusat</p>
+            <p style="margin-top:5px;">Tahun Kalender Pajak: <span id="kertas-pajak-tahun"></span></p>
+        </div>
+
+        <div class="papan-kerja-putih">
+            <div class="kotak-penyaring no-cetak">
+                <label style="font-size:14px; font-weight:800;">Pilih Tahun Catatan:</label>
+                <select id="saring-tahun-pajak"></select>
+                <button class="tombol-utama-lebar tombol-biru-tua" onclick="prosesDataPajakTahunan()"><i class="fa fa-sync"></i> PROSES DATA TAHUNAN</button>
+            </div>
+
+            <div id="blok-spt-pajak" style="display: none;">
+                <div class="grup-tombol-aksi no-cetak" style="margin-bottom: 15px;">
+                    <button class="tombol-utama-lebar tombol-biru-langit" onclick="bukaJendelaCetak()"><i class="fa fa-print"></i> CETAK DATA PAJAK INI</button>
+                </div>
+
+                <h3 style="text-align: center; margin-bottom: 15px; font-size: 16px; color: var(--biru-tua-kontras);">Rincian Arus Kas Pertahun</h3>
+                
+                <div class="deretan-kartu-saldo">
+                    <div class="kotak-spt-pajak">
+                        <h4>1. Kas Umum Masjid</h4>
+                        <div class="baris-spt"><span>Total Penerimaan Uang</span><span class="warna-teks-masuk" id="spt-masuk-umum">Rp 0</span></div>
+                        <div class="baris-spt"><span>Total Pengeluaran Belanja</span><span class="warna-teks-keluar" id="spt-keluar-umum">Rp 0</span></div>
+                        <div class="baris-spt total-akhir"><span>Sisa Bersih Kas</span><span id="spt-sisa-umum">Rp 0</span></div>
+                    </div>
+
+                    <div class="kotak-spt-pajak">
+                        <h4>2. Kas Sosial & Kematian</h4>
+                        <div class="baris-spt"><span>Total Penerimaan Uang</span><span class="warna-teks-masuk" id="spt-masuk-soskem">Rp 0</span></div>
+                        <div class="baris-spt"><span>Total Pengeluaran Belanja</span><span class="warna-teks-keluar" id="spt-keluar-soskem">Rp 0</span></div>
+                        <div class="baris-spt total-akhir"><span>Sisa Bersih Kas</span><span id="spt-sisa-soskem">Rp 0</span></div>
+                    </div>
+
+                    <div class="kotak-spt-pajak">
+                        <h4>3. Kas Renovasi Pembangunan</h4>
+                        <div class="baris-spt"><span>Total Penerimaan Uang</span><span class="warna-teks-masuk" id="spt-masuk-renovasi">Rp 0</span></div>
+                        <div class="baris-spt"><span>Total Pengeluaran Belanja</span><span class="warna-teks-keluar" id="spt-keluar-renovasi">Rp 0</span></div>
+                        <div class="baris-spt total-akhir"><span>Sisa Bersih Kas</span><span id="spt-sisa-renovasi">Rp 0</span></div>
+                    </div>
+                </div>
+
+                <div class="kotak-spt-pajak" style="background: #e0f2fe; border: 3px solid #0369a1;">
+                    <h4 style="text-align: center; margin-bottom:10px;">REKAP GABUNGAN TOTAL KESELURUHAN (TAHUN <span id="label-spt-tahun-pajak"></span>)</h4>
+                    <div class="baris-spt" style="font-size: 16px;"><span>Total Penerimaan Bruto</span><span class="warna-teks-masuk" id="spt-masuk-total">Rp 0</span></div>
+                    <div class="baris-spt" style="font-size: 16px;"><span>Total Pengeluaran Bruto</span><span class="warna-teks-keluar" id="spt-keluar-total">Rp 0</span></div>
+                    <div class="baris-spt total-akhir" style="font-size: 18px; text-transform: uppercase;"><span>Sisa Lebih / Bersih Gabungan</span><span id="spt-sisa-total">Rp 0</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tanda-tangan-bawah hanya-cetak">
+            <div class="kotak-ttd">
+                <p>Jakarta, <span class="tanggal-hari-ini-cetak"></span></p>
+                <p style="margin-top:5px;">Ketua DKM DKM Masjid Al Iman</p>
+                <div class="garis-nama-terang nama-pengurus-cetak">Sekretaris</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= HALAMAN 5: RIWAYAT KERJA SISTEM ================= -->
+    <div id="hal-catatanriwayat" class="bagian-halaman no-cetak">
+        <div class="papan-kerja-putih">
+            <div class="judul-sub-halaman" style="margin-top:0;"><i class="fa fa-history"></i> Log Buku Catatan Kerja Sistem</div>
+            <p style="font-size:13px; color:var(--teks-abu-jelas); margin-bottom:15px;">Daftar ini mencatat otomatis setiap tindakan pengurus saat Tambah, Ubah, atau Hapus data biar tidak ada salah paham.</p>
+            <div class="wadah-tabel-gulung">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Waktu Kejadian</th>
+                            <th>Nama Pengurus</th>
+                            <th>Nomor Catatan</th>
+                            <th>Aktivitas Kerja</th>
+                            <th>Nominal Uang</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabel-audit-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= HALAMAN 6: KIRIM INTERNET (CLOUD CONNECT) ================= -->
+    <div id="hal-kiriminternet" class="bagian-halaman no-cetak">
+        <div class="papan-kerja-putih">
+            <h3 style="margin-bottom: 15px; color: var(--biru-tua-kontras); font-size:18px;"><i class="fa fa-cloud-upload-alt"></i> Sambungan Laporan Online (Internet)</h3>
+            
+            <div style="background: #e0f2fe; border: 2px solid #bae6fd; padding: 15px; border-radius: 10px; margin-bottom: 15px; font-size:14px; line-height:1.5;">
+                <strong>Terakhir Dikirim:</strong> <span id="sync-waktu-koneksi">-</span><br>
+                <strong>Status Sambungan:</strong> <span id="sync-status-koneksi" style="font-weight:bold; color:#e11d48;">Belum Diatur</span><br>
+                <strong>Jumlah Baris Data:</strong> <span id="sync-jumlah-baris" style="font-weight:bold;">0</span> Baris Data
+            </div>
+
+            <div class="kotak-isian" style="margin-bottom: 15px;">
+                <label>Alamat Tautan Aplikasi Google (Google Apps Script Link)</label>
+                <input type="text" id="tautan-google-script" placeholder="Hubungkan dengan menempelkan link script di sini" style="font-size:14px; padding:12px;">
+            </div>
+            <div class="kotak-isian" style="margin-bottom: 20px;">
+                <label>Kata Sandi Internet Pengaman / Rahasia (Boleh Dikosongkan)</label>
+                <input type="password" id="sandi-google-script" placeholder="Masukkan kata sandi jika dipasang kunci" style="font-size:14px; padding:12px;">
+            </div>
+            
+            <div class="grup-tombol-aksi">
+                <button class="tombol-utama-lebar tombol-biru-tua" onclick="simpanAturanInternet()"><i class="fa fa-save"></i> 1. SIMPAN ATURAN SAMBUNGAN</button>
+                <button class="tombol-utama-lebar tombol-biru-langit" onclick="kirimDataKeGoogleSheets()"><i class="fa fa-sync"></i> 2. KIRIM DATA KAS KE INTERNET SEKARANG</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- LOGIKA PROGRAM (KODE UTAMA JAVASCRIPT) -->
+<script>
+    // Kode Angka Kunci Rahasia Masuk
+    const PIN_SISTEM = "070707"; 
+    let basisDataKas = [];
+    let basisDataAudit = [];
+    let namaPetugasPengurus = "Sekretaris";
+
+    function validasiSandi() {
+        if(document.getElementById('sandi-rahasia').value === PIN_SISTEM) {
+            document.getElementById('layar-kunci').style.display = 'none';
+            document.getElementById('wadah-aplikasi').style.display = 'block';
+            sessionStorage.setItem('sesi_aman_aliman', 'MASUK_OK');
+            muatAwalSistem();
+        } else { 
+            document.getElementById('sandi-salah-notif').style.display = 'block'; 
+        }
+    }
+    
+    function kunciAplikasi() { 
+        sessionStorage.removeItem('sesi_aman_aliman'); 
+        window.location.reload(); 
+    }
+
+    window.onload = () => {
+        if(sessionStorage.getItem('sesi_aman_aliman') === 'MASUK_OK') {
+            document.getElementById('layar-kunci').style.display = 'none';
+            document.getElementById('wadah-aplikasi').style.display = 'block';
+            muatAwalSistem();
+        }
+    };
+
+    function muatAwalSistem() {
+        let pilTahun = document.getElementById('saring-tahun');
+        let pilTahunPajak = document.getElementById('saring-tahun-pajak');
+        let tahunSekarang = new Date().getFullYear();
+        
+        pilTahun.innerHTML = "";
+        pilTahunPajak.innerHTML = "";
+        for(let i = tahunSekarang; i >= tahunSekarang - 5; i--) { 
+            pilTahun.innerHTML += `<option value="${i}">${i} Masehi</option>`; 
+            pilTahunPajak.innerHTML += `<option value="${i}">${i} Kalender</option>`; 
+        }
+        document.getElementById('saring-bulan').value = new Date().getMonth() + 1;
+        document.getElementById('formulir-tanggal').valueAsDate = new Date();
+
+        try {
+            basisDataKas = JSON.parse(localStorage.getItem('db_kas_aliman_biru'));
+            if (!Array.isArray(basisDataKas)) basisDataKas = [];
+        } catch(e) { basisDataKas = []; }
+
+        try {
+            basisDataAudit = JSON.parse(localStorage.getItem('db_audit_aliman_biru'));
+            if (!Array.isArray(basisDataAudit)) basisDataAudit = [];
+        } catch(e) { basisDataAudit = []; }
+
+        bacaPengaturanInternet();
+        hitungUangLayarUtama();
+    }
+
+    function ubahKeFormatRupiah(angka) { 
+        return new Intl.NumberFormat('id-ID').format(angka); 
+    }
+    
+    function sinkronNamaPengurus() { 
+        namaPetugasPengurus = document.getElementById('isian-nama-pengurus').value || "Sekretaris"; 
+        document.getElementById('teks-nama-pengurus').innerText = namaPetugasPengurus;
+    }
+
+    function pindahHalaman(idHalaman) {
+        document.querySelectorAll('.bagian-halaman').forEach(el => el.classList.remove('aktif'));
+        document.querySelectorAll('.tombol-menu-besar').forEach(el => el.classList.remove('terpilih'));
+        
+        document.getElementById('hal-' + idHalaman).classList.add('aktif');
+        
+        let letakIndex = 0;
+        if(idHalaman === 'ringkasan') { letakIndex = 0; hitungUangLayarUtama(); }
+        else if(idHalaman === 'catatbaru') { letakIndex = 1; }
+        else if(idHalaman === 'laporanbulanan') { letakIndex = 2; }
+        else if(idHalaman === 'pajaktahunan') { letakIndex = 3; }
+        else if(idHalaman === 'catatanriwayat') { letakIndex = 4; muatTabelAuditTrail(); }
+        else if(idHalaman === 'kiriminternet') { letakIndex = 5; }
+        
+        document.querySelectorAll('.tombol-menu-besar')[letakIndex].classList.add('terpilih');
+    }
+
+    function bikinCadanganOtomatis() {
+        localStorage.setItem('aliman_auto_salinan_data', JSON.stringify({ kas: basisDataKas, audit: basisDataAudit }));
+    }
+
+    function simpanKePenyimpananLokal() {
+        localStorage.setItem('db_kas_aliman_biru', JSON.stringify(basisDataKas));
+        localStorage.setItem('db_audit_aliman_biru', JSON.stringify(basisDataAudit));
+        bikinCadanganOtomatis();
+        kirimDataKeGoogleSheets(); 
+    }
+
+    function tulisLogAudit(kegiatan, uangNominal, kodeId = "-") {
+        let jamMasehi = new Date();
+        let d = jamMasehi.toLocaleDateString('id-ID');
+        let t = jamMasehi.toLocaleTimeString('id-ID');
+        basisDataAudit.push({ waktu: d + ' ' + t, nama: namaPetugasPengurus, aksi: kegiatan, dana: uangNominal, id: kodeId });
+        simpanKePenyimpananLokal();
+    }
+
+    function cekKondisiSistem() {
+        let keluhan = [];
+        let kodeUnik = new Set();
+        let isiUang = { Umum: 0, Soskem: 0, Renovasi: 0 };
+
+        [...basisDataKas].forEach(tx => {
+            if(!tx.id) keluhan.push("Ditemukan data tanpa kode.");
+            else if(kodeUnik.has(tx.id)) keluhan.push("Kode data ganda: " + tx.id);
+            kodeUnik.add(tx.id);
+
+            let n = parseInt(tx.nominal) || 0;
+            if(tx.jenis === 'Masuk') isiUang[tx.rekening] += n;
+            else if(tx.jenis === 'Keluar') isiUang[tx.rekening] -= n;
+        });
+
+        if(isiUang.Umum < 0) keluhan.push("Uang Kas Umum Minus/Nominal Kurang.");
+        if(isiUang.Soskem < 0) keluhan.push("Uang Kas Kematian Minus.");
+        if(isiUang.Renovasi < 0) keluhan.push("Uang Kas Renovasi Minus.");
+
+        if(keluhan.length === 0) {
+            alert("Hasil Pemeriksaan: BUKU KAS DALAM KONDISI SANGAT SEHAT DAN BENAR!");
+        } else {
+            alert("Perhatian Pengurus, ada hal ganjil berikut:\n- " + keluhan.join("\n- "));
+        }
+    }
+
+    function simpanAturanInternet() {
+        localStorage.setItem('aliman_link_google', document.getElementById('tautan-google-script').value);
+        localStorage.setItem('aliman_kunci_google', document.getElementById('sandi-google-script').value);
+        alert("Pengaturan Link Berhasil Disimpan!");
+        bacaPengaturanInternet();
+    }
+
+    function bacaPengaturanInternet() {
+        document.getElementById('tautan-google-script').value = localStorage.getItem('aliman_link_google') || '';
+        document.getElementById('sandi-google-script').value = localStorage.getItem('aliman_kunci_google') || '';
+        document.getElementById('sync-waktu-koneksi').innerText = localStorage.getItem('aliman_sinkron_terakhir') || 'Belum Pernah';
+        
+        if(localStorage.getItem('aliman_link_google')) {
+            document.getElementById('sync-status-koneksi').innerText = 'Sudah Terhubung Online';
+            document.getElementById('sync-status-koneksi').style.color = '#0d9488';
+        } else {
+            document.getElementById('sync-status-koneksi').innerText = 'Belum Diatur';
+            document.getElementById('sync-status-koneksi').style.color = '#e11d48';
+        }
+    }
+
+    async function kirimDataKeGoogleSheets() {
+        let alamatTautan = localStorage.getItem('aliman_link_google');
+        let kataKunci = localStorage.getItem('aliman_kunci_google');
+        
+        if(!alamatTautan) {
+            document.getElementById('sync-status-koneksi').innerText = 'Belum Diatur';
+            document.getElementById('sync-status-koneksi').style.color = '#e11d48';
+            return;
+        }
+
+        document.getElementById('sync-status-koneksi').innerText = 'Sedang Mengirim Data...';
+        document.getElementById('sync-status-koneksi').style.color = '#d97706';
+
+        let formatKirimKas = basisDataKas.map(tx => ({
+            id: tx.id, tanggal: tx.tanggal, rekening: tx.rekening, arus: tx.jenis, nominal: tx.nominal, keterangan: tx.uraian
+        }));
+
+        let formatKirimAudit = basisDataAudit.map(log => ({
+            waktu: log.waktu, aksi: log.aksi, idTransaksi: log.id || '-'
+        }));
+
+        let isiPaket = {
+            action: 'syncData',
+            apiKey: kataKunci || '',
+            transaksi: formatKirimKas,
+            audit: formatKirimAudit
+        };
+
+        try {
+            await fetch(alamatTautan, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(isiPaket)
+            });
+
+            let waktuSekarang = new Date().toLocaleString('id-ID');
+            localStorage.setItem('aliman_sinkron_terakhir', waktuSekarang);
+            document.getElementById('sync-waktu-koneksi').innerText = waktuSekarang;
+            document.getElementById('sync-jumlah-baris').innerText = formatKirimKas.length + formatKirimAudit.length;
+            document.getElementById('sync-status-koneksi').innerText = 'Berhasil Terkirim ke Internet!';
+            document.getElementById('sync-status-koneksi').style.color = '#0d9488';
+        } catch(e) {
+            document.getElementById('sync-status-koneksi').innerText = 'Gagal Mengirim (Tidak Ada Internet)';
+            document.getElementById('sync-status-koneksi').style.color = '#e11d48';
+        }
+    }
+
+    function pasangDataUbahMode(id) {
+        let dataKetemu = [...basisDataKas].find(t => t.id === id);
+        if(!dataKetemu) return;
+
+        document.getElementById('formulir-tanggal').value = dataKetemu.tanggal;
+        document.getElementById('formulir-jenis').value = dataKetemu.jenis;
+        document.getElementById('formulir-pilihan-kas').value = dataKetemu.rekening;
+        document.getElementById('formulir-nominal').value = dataKetemu.nominal;
+        document.getElementById('formulir-uraian').value = dataKetemu.uraian;
+        document.getElementById('formulir-id-edit').value = dataKetemu.id;
+
+        document.getElementById('judul-formulir-kas').innerHTML = '<i class="fa fa-edit"></i> Ubah Data Catatan';
+        document.getElementById('tombol-simpan-kas').innerHTML = '<i class="fa fa-save"></i> PERBARUI DATA INI';
+        document.getElementById('tombol-simpan-kas').style.background = '#2563eb';
+        document.getElementById('tombol-batal-ubah').style.display = 'block';
+
+        pindahHalaman('catatbaru');
+    }
+
+    function matikanModeUbah() {
+        document.getElementById('formulir-tanggal').valueAsDate = new Date();
+        document.getElementById('formulir-nominal').value = '';
+        document.getElementById('formulir-uraian').value = '';
+        document.getElementById('formulir-id-edit').value = '';
+
+        document.getElementById('judul-formulir-kas').innerHTML = '<i class="fa fa-pencil-alt"></i> Tulis Transaksi Baru';
+        document.getElementById('tombol-simpan-kas').innerHTML = '<i class="fa fa-save"></i> SAHKAN DAN SIMPAN DATA';
+        document.getElementById('tombol-simpan-kas').style.background = '#0284c7';
+        document.getElementById('tombol-batal-ubah').style.display = 'none';
+    }
+
+    function eksekusiSimpanData() {
+        let tgl = document.getElementById('formulir-tanggal').value;
+        let jns = document.getElementById('formulir-jenis').value;
+        let rek = document.getElementById('formulir-pilihan-kas').value;
+        let uraian = document.getElementById('formulir-uraian').value;
+        let nominal = parseInt(document.getElementById('formulir-nominal').value);
+        let idEdit = document.getElementById('formulir-id-edit').value;
+
+        if(!tgl) { alert("Pemberitahuan: Kolom tanggal wajib dipilih!"); return; }
+        if(isNaN(nominal) || nominal <= 0) { alert("Pemberitahuan: Kolom jumlah uang wajib diisi angka yang benar!"); return; }
+        if(!uraian) { alert("Pemberitahuan: Kolom penjelasan tidak boleh dikosongkan!"); return; }
+
+        if(idEdit !== '') {
+            let index = basisDataKas.findIndex(t => t.id === idEdit);
+            if(index !== -1) {
+                basisDataKas[index] = { id: idEdit, tanggal: tgl, jenis: jns, rekening: rek, uraian: uraian, nominal: nominal };
+                tulisLogAudit(`MENGUBAH DATA`, nominal, idEdit);
+                alert("Berhasil: Perubahan data kas disimpan!");
+                matikanModeUbah();
+            }
+        } else {
+            let kodeBaru = 'KAS-' + Date.now();
+            basisDataKas.push({ id: kodeBaru, tanggal: tgl, jenis: jns, rekening: rek, uraian: uraian, nominal: nominal });
+            tulisLogAudit(`MENAMBAH DATA`, nominal, kodeBaru);
+            alert("Berhasil: Catatan kas baru telah dimasukkan!"); 
+        }
+
+        simpanKePenyimpananLokal(); 
+        document.getElementById('formulir-uraian').value = ''; 
+        document.getElementById('formulir-nominal').value = '';
+        pindahHalaman('ringkasan');
+    }
+
+    function eksekusiHapusData(id, nominal) {
+        let pinBatal = prompt("KEAMANAN LANSIA - SILA MASUKKAN KODE RAHASIA UNTUK MENGHAPUS:");
+        if(pinBatal !== PIN_SISTEM) { alert("Kode Salah. Data gagal dihapus."); return; }
+
+        if(confirm("Apakah bapak/ibu pengurus DKM yakin ingin menghapus permanen data ini?")) {
+            basisDataKas = basisDataKas.filter(tx => tx.id !== id);
+            tulisLogAudit("MENGHAPUS DATA", nominal, id);
+            simpanKePenyimpananLokal(); 
+            hitungBukuKasBulanan();
+        }
+    }
+
+    function hitungUangLayarUtama() {
+        let blnSekarang = new Date().getMonth() + 1; 
+        let thnSekarang = new Date().getFullYear();
+        let daftarNamaBulan = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+        document.getElementById('label-bulan-berjalan').innerText = daftarNamaBulan[blnSekarang-1] + " " + thnSekarang;
+
+        let totalMasukBulanIni = 0, totalKeluarBulanIni = 0, hitungBarisData = 0;
+        let sUmum = 0, sSoskem = 0, sRenovasi = 0;
+
+        [...basisDataKas].forEach(tx => {
+            let n = parseInt(tx.nominal) || 0;
+            if(tx.rekening === 'Umum') { tx.jenis === 'Masuk' ? sUmum += n : sUmum -= n; }
+            if(tx.rekening === 'Soskem') { tx.jenis === 'Masuk' ? sSoskem += n : sSoskem -= n; }
+            if(tx.rekening === 'Renovasi') { tx.jenis === 'Masuk' ? sRenovasi += n : sRenovasi -= n; }
+
+            let d = new Date(tx.tanggal);
+            if(d.getMonth() + 1 === blnSekarang && d.getFullYear() === thnSekarang) {
+                tx.jenis === 'Masuk' ? totalMasukBulanIni += n : totalKeluarBulanIni += n;
+                hitungBarisData++;
+            }
+        });
+
+        document.getElementById('ringkasan-kas-umum').innerText = 'Rp ' + ubahKeFormatRupiah(sUmum);
+        document.getElementById('ringkasan-kas-soskem').innerText = 'Rp ' + ubahKeFormatRupiah(sSoskem);
+        document.getElementById('ringkasan-kas-renovasi').innerText = 'Rp ' + ubahKeFormatRupiah(sRenovasi);
+        document.getElementById('ringkasan-masuk-bulan').innerText = 'Rp ' + ubahKeFormatRupiah(totalMasukBulanIni); 
+        document.getElementById('ringkasan-keluar-bulan').innerText = 'Rp ' + ubahKeFormatRupiah(totalKeluarBulanIni);
+        document.getElementById('ringkasan-sisa-bulan').innerText = 'Rp ' + ubahKeFormatRupiah(totalMasukBulanIni - totalKeluarBulanIni); 
+        document.getElementById('ringkasan-jumlah-transaksi').innerText = hitungBarisData;
+
+        let dataUrutTgl = [...basisDataKas].sort((a,b) => new Date(b.tanggal) - new Date(a.tanggal)).slice(0, 10);
+        let badanTabel = document.getElementById('tabel-terbaru-body'); 
+        badanTabel.innerHTML = '';
+        
+        dataUrutTgl.forEach(tx => {
+            badanTabel.innerHTML += `<tr>
+                <td><b>${tx.tanggal}</b></td>
+                <td>Kas ${tx.rekening}</td>
+                <td>${tx.uraian}</td>
+                <td><span style="color: ${tx.jenis==='Masuk'?'#0d9488':'#e11d48'}; font-weight:bold;">${tx.jenis === 'Masuk' ? 'MASUK (+)' : 'KELUAR (-)'}</span></td>
+                <td><b>Rp ${ubahKeFormatRupiah(tx.nominal)}</b></td>
+            </tr>`;
+        });
+    }
+
+    function hitungBukuKasBulanan() {
+        let fBulan = parseInt(document.getElementById('saring-bulan').value); 
+        let fTahun = parseInt(document.getElementById('saring-tahun').value);
+        let fKas = document.getElementById('saring-pilihan-kas').value;
+        let dataBerurutan = [...basisDataKas].sort((a,b) => new Date(a.tanggal) - new Date(b.tanggal));
+
+        let uangSaldoAwal = 0, uangMasukBulanIni = 0, uangKeluarBulanIni = 0;
+        let badanTabel = document.getElementById('tabel-rekap-body'); 
+        badanTabel.innerHTML = '';
+
+        dataBerurutan.forEach(tx => {
+            if(fKas !== 'Semua' && tx.rekening !== fKas) return;
+            let d = new Date(tx.tanggal); 
+            let tM = d.getMonth() + 1; 
+            let tY = d.getFullYear();
+            if(tY < fTahun || (tY === fTahun && tM < fBulan)) {
+                tx.jenis === 'Masuk' ? uangSaldoAwal += parseInt(tx.nominal) : uangSaldoAwal -= parseInt(tx.nominal);
+            }
+        });
+
+        let uangSaldoBerjalan = uangSaldoAwal; 
+        let dataAdaAtauTidak = false;
+        
+        document.querySelectorAll('.kolom-kas-pilihan').forEach(el => {
+            fKas !== 'Semua' ? el.classList.add('no-cetak') : el.classList.remove('no-cetak');
+        });
+
+        dataBerurutan.forEach(tx => {
+            if(fKas !== 'Semua' && tx.rekening !== fKas) return;
+            let d = new Date(tx.tanggal); 
+            let tM = d.getMonth() + 1; 
+            let tY = d.getFullYear();
+            
+            if(tY === fTahun && tM === fBulan) {
+                dataAdaAtauTidak = true;
+                let nMasuk = tx.jenis === 'Masuk' ? parseInt(tx.nominal) : 0; 
+                let nKeluar = tx.jenis === 'Keluar' ? parseInt(tx.nominal) : 0;
+                uangMasukBulanIni += nMasuk; 
+                uangKeluarBulanIni += nKeluar; 
+                uangSaldoBerjalan += nMasuk; 
+                uangSaldoBerjalan -= nKeluar;
+
+                let kolomKasKustom = `<td class="kolom-kas-pilihan ${fKas !== 'Semua' ? 'no-cetak' : ''}">Kas ${tx.rekening}</td>`;
+                badanTabel.innerHTML += `<tr>
+                    <td>${tx.tanggal}</td>
+                    <td>${tx.uraian}</td>
+                    ${kolomKasKustom}
+                    <td class="warna-teks-masuk"><b>${nMasuk > 0 ? 'Rp ' + ubahKeFormatRupiah(nMasuk) : '-'}</b></td>
+                    <td class="warna-teks-keluar"><b>${nKeluar > 0 ? 'Rp ' + ubahKeFormatRupiah(nKeluar) : '-'}</b></td>
+                    <td><mark style="background-color:#bae6fd; padding:3px 6px; font-weight:800;">Rp ${ubahKeFormatRupiah(uangSaldoBerjalan)}</mark></td>
+                    <td class="no-cetak tombol-kelola-baris">
+                        <button class="tombol-mini warna-biru-ubah" onclick="pasangDataUbahMode('${tx.id}')"><i class="fa fa-edit"></i> Ubah</button>
+                        <button class="tombol-mini warna-merah-hapus" onclick="eksekusiHapusData('${tx.id}', ${tx.nominal})"><i class="fa fa-trash"></i> Hapus</button>
+                    </td>
+                </tr>`;
+            }
+        });
+        
+        if(!dataAdaAtauTidak) {
+            badanTabel.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--teks-abu-jelas);">Tidak ditemukan transaksi pada bulan ini.</td></tr>`;
+        }
+        
+        document.getElementById('rekap-saldo-awal').innerText = 'Rp ' + ubahKeFormatRupiah(uangSaldoAwal); 
+        document.getElementById('rekap-total-masuk').innerText = 'Rp ' + ubahKeFormatRupiah(uangMasukBulanIni);
+        document.getElementById('rekap-total-keluar').innerText = 'Rp ' + ubahKeFormatRupiah(uangKeluarBulanIni); 
+        document.getElementById('rekap-saldo-akhir').innerText = 'Rp ' + ubahKeFormatRupiah(uangSaldoBerjalan);
+        
+        let mNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+        document.getElementById('kertas-periode-bulan').innerText = mNames[fBulan-1] + ' ' + fTahun;
+        document.getElementById('kertas-jenis-kas').innerText = fKas === 'Semua' ? 'Gabungan Buku Kas' : ('Buku Kas ' + fKas);
+    }
+
+    function prosesDataPajakTahunan() {
+        let tahunTerpilih = parseInt(document.getElementById('saring-tahun-pajak').value);
+        document.getElementById('label-spt-tahun-pajak').innerText = tahunTerpilih;
+        document.getElementById('kertas-pajak-tahun').innerText = tahunTerpilih;
+
+        let wadahPajak = {
+            Umum: { in: 0, out: 0 }, Soskem: { in: 0, out: 0 }, Renovasi: { in: 0, out: 0 }, Total: { in: 0, out: 0 }
+        };
+
+        [...basisDataKas].forEach(tx => {
+            let d = new Date(tx.tanggal);
+            if(d.getFullYear() === tahunTerpilih) {
+                let n = parseInt(tx.nominal) || 0;
+                let isMasuk = tx.jenis === 'Masuk';
+                
+                if(tx.rekening === 'Umum') { isMasuk ? wadahPajak.Umum.in += n : wadahPajak.Umum.out += n; }
+                if(tx.rekening === 'Soskem') { isMasuk ? wadahPajak.Soskem.in += n : wadahPajak.Soskem.out += n; }
+                if(tx.rekening === 'Renovasi') { isMasuk ? wadahPajak.Renovasi.in += n : wadahPajak.Renovasi.out += n; }
+
+                isMasuk ? wadahPajak.Total.in += n : wadahPajak.Total.out += n;
+            }
+        });
+
+        document.getElementById('spt-masuk-umum').innerText = 'Rp ' + ubahKeFormatRupiah(wadahPajak.Umum.in);
+        document.getElementById('spt-keluar-umum').innerText = 'Rp ' + ubahKeFormatRupiah(wadahPajak.Umum.out);
+        document.getElementById('spt-sisa-umum').innerText = 'Rp ' + ubahKeFormatRupiah(wadahPajak.Umum.in - wadahPajak.Umum.out);
+
+        document.getElementById('spt-masuk-soskem').innerText = 'Rp ' + ubahKeFormatRupiah(wadahPajak.Soskem.in);
+        document.getElementById('spt-keluar-soskem').innerText = 'Rp ' + ubahKeFormatRupiah(wadahPajak.Soskem.out);
+        document.getElementById('spt-sisa-soskem').innerText = 'Rp ' + ubahKeFormatRupiah(wadahPajak.Soskem.in - wadahPajak.Soskem.out);
+
+        document.getElementById('spt-masuk-renovasi').innerText = 'Rp ' + ubahKeFormatRupiah(wadahPajak.Renovasi.in);
+        document.getElementById('spt-keluar-renovasi').innerText = 'Rp ' + ubahKeFormatRupiah(wadahPajak.Renovasi.out);
+        document.getElementById('spt-sisa-renovasi').innerText = 'Rp ' + ubahKeFormatRupiah(wadahPajak.Renovasi.in - wadahPajak.Renovasi.out);
+
+        document.getElementById('spt-masuk-total').innerText = 'Rp ' + ubahKeFormatRupiah(wadahPajak.Total.in);
+        document.getElementById('spt-keluar-total').innerText = 'Rp ' + ubahKeFormatRupiah(wadahPajak.Total.out);
+        document.getElementById('spt-sisa-total').innerText = 'Rp ' + ubahKeFormatRupiah(wadahPajak.Total.in - wadahPajak.Total.out);
+
+        document.getElementById('blok-spt-pajak').style.display = 'block';
+    }
+
+    function bukaJendelaCetak() { 
+        document.querySelectorAll('.tanggal-hari-ini-cetak').forEach(el => el.innerText = new Date().toLocaleDateString('id-ID'));
+        document.querySelectorAll('.nama-pengurus-cetak').forEach(el => el.innerText = namaPetugasPengurus);
+        window.print(); 
+    }
+
+    function muatTabelAuditTrail() {
+        let badanTabel = document.getElementById('tabel-audit-body'); 
+        badanTabel.innerHTML = '';
+        [...basisDataAudit].reverse().forEach(log => {
+            badanTabel.innerHTML += `<tr>
+                <td>${log.waktu}</td>
+                <td><b>${log.nama}</b></td>
+                <td>${log.id || '-'}</td>
+                <td>${log.aksi}</td>
+                <td>Rp ${ubahKeFormatRupiah(log.dana)}</td>
+            </tr>`;
+        });
+    }
+
+    function kembalikanOtomatis() {
+        if(confirm("Apakah bapak/ibu pengurus ingin mengembalikan data dari cadangan otomatis terakhir?")) {
+            try {
+                let berkasCadangan = JSON.parse(localStorage.getItem('aliman_auto_salinan_data'));
+                if(berkasCadangan && Array.isArray(berkasCadangan.kas)) {
+                    basisDataKas = berkasCadangan.kas;
+                    basisDataAudit = berkasCadangan.audit || [];
+                    simpanKePenyimpananLokal();
+                    tulisLogAudit("MEMULIHKAN DATA CADANGAN", 0, "OTOMATIS");
+                    alert("Berhasil: Semua rekaman kas telah dipulihkan!");
+                    window.location.reload();
+                } else {
+                    alert("Pemberitahuan: Belum ada rekaman cadangan otomatis di HP/Laptop ini.");
+                }
+            } catch(e) {
+                alert("Gagal memulihkan cadangan.");
+            }
+        }
+    }
+
+    function unduhFormatExcel() {
+        let dataTeksCsv = "data:text/csv;charset=utf-8,Nomor Catatan,Tanggal Hari,Aliran Arus,Pilihan Kas,Jumlah Uang Rupiah,Penjelasan Pembayaran Uraian\n";
+        [...basisDataKas].forEach(function(r) {
+            let gabungBaris = `${r.id},${r.tanggal},${r.jenis},Kas ${r.rekening},${r.nominal},"${r.uraian}"`;
+            dataTeksCsv += gabungBaris + "\n";
+        });
+        let tautanUnduh = document.createElement("a");
+        tautanUnduh.setAttribute("href", encodeURI(dataTeksCsv));
+        tautanUnduh.setAttribute("download", `Laporan_Buku_Kas_AlIman_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(tautanUnduh);
+        tautanUnduh.click();
+        document.body.removeChild(tautanUnduh);
+    }
+
+    function simpanKeFileFisik() {
+        const paketBlob = new Blob([JSON.stringify({ kas: basisDataKas, audit: basisDataAudit }, null, 2)], { type: "application/json" });
+        const objekTautan = document.createElement('a'); 
+        objekTautan.href = URL.createObjectURL(paketBlob);
+        objekTautan.download = `Cadangan_Kas_Masjid_AlIman_${new Date().toISOString().split('T')[0]}.json`; 
+        objekTautan.click();
+        tulisLogAudit("MEMBUAT FILE CADANGAN", 0, "-");
+    }
+
+    function bacaFileCadangan(e) {
+        const berkasTarget = e.target.files[0]; 
+        if(!berkasTarget) return;
+        if(!berkasTarget.name.toLowerCase().endsWith('.json')) { alert("Salah berkas! Wajib memilih file berakhiran .json"); return; }
+        
+        const pembacaBerkas = new FileReader();
+        pembacaBerkas.onload = function(evt) {
+            try {
+                let hasilUrai = JSON.parse(evt.target.result);
+                if(hasilUrai.kas && Array.isArray(hasilUrai.kas)) { 
+                    basisDataKas = hasilUrai.kas; 
+                    basisDataAudit = hasilUrai.audit || []; 
+                    simpanKePenyimpananLokal(); 
+                    tulisLogAudit("RESTORE FILE CADANGAN", 0, "-"); 
+                    alert("Berhasil: Semua kas dari file cadangan telah dimasukkan kembali!"); 
+                    window.location.reload(); 
+                } else { 
+                    alert("Isi dalam file cadangan tidak sesuai!"); 
+                }
+            } catch(err) { 
+                alert("File rusak atau korup, tidak dapat dibaca!"); 
+            }
+        };
+        pembacaBerkas.readAsText(berkasTarget);
+    }
+</script>
+</body>
+</html>
