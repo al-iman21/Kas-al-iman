@@ -1,7 +1,7 @@
 {
   "name": "Kas Masjid Internal",
   "short_name": "Kas Masjid",
-  "start_url": "/",
+  "start_url": "/Kas-al-iman/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#006633",
