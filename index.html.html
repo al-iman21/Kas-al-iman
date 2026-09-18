@@ -28,6 +28,10 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase Realtime Database + Authentication -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
     
     <style>
         :root {
@@ -544,42 +548,159 @@
         </div>
     </div>
 
-    <!-- ================= HALAMAN 6: KIRIM INTERNET (CLOUD CONNECT) ================= -->
+    <!-- ================= HALAMAN 6: FIREBASE CLOUD CONNECT ================= -->
     <div id="hal-kiriminternet" class="bagian-halaman no-cetak">
         <div class="papan-kerja-putih">
-            <h3 style="margin-bottom: 15px; color: var(--biru-tua-kontras); font-size:18px;"><i class="fa fa-cloud-upload-alt"></i> Sambungan Laporan Online (Internet)</h3>
-            
-            <div style="background: #e0f2fe; border: 2px solid #bae6fd; padding: 15px; border-radius: 10px; margin-bottom: 15px; font-size:14px; line-height:1.5;">
-                <strong>Terakhir Dikirim:</strong> <span id="sync-waktu-koneksi">-</span><br>
-                <strong>Status Sambungan:</strong> <span id="sync-status-koneksi" style="font-weight:bold; color:#e11d48;">Belum Diatur</span><br>
-                <strong>Jumlah Baris Data:</strong> <span id="sync-jumlah-baris" style="font-weight:bold;">0</span> Baris Data
+            <h3 style="margin-bottom: 15px; color: var(--biru-tua-kontras); font-size:18px;">
+                <i class="fa fa-cloud"></i> Sambungan Firebase Realtime
+            </h3>
+
+            <div style="background: #e0f2fe; border: 2px solid #bae6fd; padding: 15px; border-radius: 10px; margin-bottom: 15px; font-size:14px; line-height:1.6;">
+                <strong>Status Firebase:</strong>
+                <span id="sync-status-koneksi" style="font-weight:bold; color:#d97706;">Menyiapkan...</span><br>
+                <strong>Login Firebase:</strong>
+                <span id="firebase-auth-status" style="font-weight:bold;">Menunggu...</span><br>
+                <strong>Terakhir Sinkron:</strong>
+                <span id="sync-waktu-koneksi">Belum Pernah</span><br>
+                <strong>Jumlah Transaksi:</strong>
+                <span id="sync-jumlah-transaksi-firebase" style="font-weight:bold;">0</span><br>
+                <strong>Jumlah Audit:</strong>
+                <span id="sync-jumlah-audit-firebase" style="font-weight:bold;">0</span>
             </div>
 
-            <div class="kotak-isian" style="margin-bottom: 15px;">
-                <label>Alamat Tautan Aplikasi Google (Google Apps Script Link)</label>
-                <input type="text" id="tautan-google-script" placeholder="Hubungkan dengan menempelkan link script di sini" style="font-size:14px; padding:12px;">
+            <div style="background:#fff7ed; border:2px solid #fed7aa; padding:15px; border-radius:10px; margin-bottom:20px; font-size:14px; line-height:1.6;">
+                <strong><i class="fa fa-shield-halved"></i> Migrasi aman:</strong>
+                data lama <b>db_kas_aliman_biru</b> dan <b>db_audit_aliman_biru</b> tetap disimpan di HP.
+                Data lokal dikirim ke Firebase tanpa menghapus LocalStorage.
             </div>
-            <div class="kotak-isian" style="margin-bottom: 20px;">
-                <label>Kata Sandi Internet Pengaman / Rahasia (Boleh Dikosongkan)</label>
-                <input type="password" id="sandi-google-script" placeholder="Masukkan kata sandi jika dipasang kunci" style="font-size:14px; padding:12px;">
-            </div>
-            
+
             <div class="grup-tombol-aksi">
-                <button class="tombol-utama-lebar tombol-biru-tua" onclick="simpanAturanInternet()"><i class="fa fa-save"></i> 1. SIMPAN ATURAN SAMBUNGAN</button>
-                <button class="tombol-utama-lebar tombol-biru-langit" onclick="kirimDataKeGoogleSheets()"><i class="fa fa-sync"></i> 2. KIRIM DATA KAS KE INTERNET SEKARANG</button>
+                <button class="tombol-utama-lebar tombol-biru-tua" onclick="migrasikanLokalKeFirebase(true)">
+                    <i class="fa fa-cloud-arrow-up"></i> MIGRASIKAN DATA LOKAL KE FIREBASE
+                </button>
+                <button class="tombol-utama-lebar tombol-biru-langit" onclick="sinkronkanPerubahanLokalKeFirebase(true)">
+                    <i class="fa fa-sync"></i> SINKRONKAN DATA SEKARANG
+                </button>
+            </div>
+
+            <div style="margin-top:18px; background:#f8fafc; border:1px solid #cbd5e1; padding:12px; border-radius:10px; font-size:13px; line-height:1.5;">
+                <b>Lokasi Firebase:</b> masjidAlIman / transaksi dan masjidAlIman / audit
             </div>
         </div>
     </div>
-
 </div>
 
 <!-- LOGIKA PROGRAM (KODE UTAMA JAVASCRIPT) -->
 <script>
+    // ============================================================
+    // FIREBASE - MASJID AL IMAN
+    // Data lokal TIDAK DIHAPUS. Firebase hanya menjadi salinan cloud
+    // dan sumber laporan realtime.
+    // ============================================================
+    const FIREBASE_CONFIG = {
+        apiKey: "AIzaSyAvGxcoE6ek_-sCEcWMV4Tw3-BrYzuVkpM",
+        authDomain: "kas-masjid-al-iman.firebaseapp.com",
+        databaseURL: "https://kas-masjid-al-iman-default-rtdb.firebaseio.com",
+        projectId: "kas-masjid-al-iman",
+        storageBucket: "kas-masjid-al-iman.firebasestorage.app",
+        messagingSenderId: "958437841916",
+        appId: "1:958437841916:web:fc0bd2dbc39d0d7413f079"
+    };
+
+    const FIREBASE_ROOT = 'masjidAlIman';
+    const FIREBASE_TRANSAKSI = FIREBASE_ROOT + '/transaksi';
+    const FIREBASE_AUDIT = FIREBASE_ROOT + '/audit';
+    const LOCAL_MIGRATION_FLAG = 'aliman_firebase_migrasi_v1';
+    const LOCAL_FIREBASE_SNAPSHOT = 'aliman_firebase_snapshot_v1';
+
+    let firebaseApp = null;
+    let firebaseAuth = null;
+    let firebaseDb = null;
+    let firebaseSiap = false;
+    let sedangMemuatDariFirebase = false;
+    let listenerTransaksiTerpasang = false;
+    let listenerAuditTerpasang = false;
+    let sinkronSedangBerjalan = false;
+
     // Kode Angka Kunci Rahasia Masuk
-    const PIN_SISTEM = "070707"; 
+    const PIN_SISTEM = "070707";
     let basisDataKas = [];
     let basisDataAudit = [];
     let namaPetugasPengurus = "Sekretaris";
+
+    function setStatusFirebase(status, warna) {
+        const el = document.getElementById('sync-status-koneksi');
+        if (el) {
+            el.innerText = status;
+            if (warna) el.style.color = warna;
+        }
+    }
+
+    function updateInfoFirebase() {
+        const a = document.getElementById('sync-jumlah-transaksi-firebase');
+        const b = document.getElementById('sync-jumlah-audit-firebase');
+        const c = document.getElementById('sync-jumlah-baris');
+        if (a) a.innerText = basisDataKas.length;
+        if (b) b.innerText = basisDataAudit.length;
+        if (c) c.innerText = basisDataKas.length + basisDataAudit.length;
+    }
+
+    function simpanWaktuSinkron() {
+        const waktu = new Date().toLocaleString('id-ID');
+        localStorage.setItem('aliman_sinkron_terakhir', waktu);
+        const el = document.getElementById('sync-waktu-koneksi');
+        if (el) el.innerText = waktu;
+    }
+
+    function safeFirebaseKey(value) {
+        return String(value || '')
+            .replace(/[.#$/\[\]]/g, '_')
+            .replace(/^\s+|\s+$/g, '')
+            .slice(0, 700) || ('DATA-' + Date.now());
+    }
+
+    function normalizeTransaction(tx) {
+        if (!tx || typeof tx !== 'object') return null;
+        return {
+            id: String(tx.id || ('KAS-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7))),
+            tanggal: String(tx.tanggal || ''),
+            jenis: String(tx.jenis || tx.arus || 'Masuk'),
+            rekening: String(tx.rekening || 'Umum'),
+            uraian: String(tx.uraian || tx.keterangan || ''),
+            nominal: Number(tx.nominal) || 0
+        };
+    }
+
+    function normalizeAudit(log) {
+        if (!log || typeof log !== 'object') return null;
+        return {
+            waktu: String(log.waktu || ''),
+            nama: String(log.nama || 'Pengurus'),
+            aksi: String(log.aksi || ''),
+            dana: Number(log.dana) || 0,
+            id: String(log.id || log.idTransaksi || '-')
+        };
+    }
+
+    function snapshotLokal() {
+        return {
+            kas: JSON.parse(JSON.stringify(basisDataKas)),
+            audit: JSON.parse(JSON.stringify(basisDataAudit))
+        };
+    }
+
+    function bacaSnapshotTerakhir() {
+        try {
+            const x = JSON.parse(localStorage.getItem(LOCAL_FIREBASE_SNAPSHOT));
+            return x && typeof x === 'object' ? x : { kas: [], audit: [] };
+        } catch (e) {
+            return { kas: [], audit: [] };
+        }
+    }
+
+    function simpanSnapshotTerakhir() {
+        localStorage.setItem(LOCAL_FIREBASE_SNAPSHOT, JSON.stringify(snapshotLokal()));
+    }
 
     function validasiSandi() {
         if(document.getElementById('sandi-rahasia').value === PIN_SISTEM) {
@@ -587,14 +708,14 @@
             document.getElementById('wadah-aplikasi').style.display = 'block';
             sessionStorage.setItem('sesi_aman_aliman', 'MASUK_OK');
             muatAwalSistem();
-        } else { 
-            document.getElementById('sandi-salah-notif').style.display = 'block'; 
+        } else {
+            document.getElementById('sandi-salah-notif').style.display = 'block';
         }
     }
-    
-    function kunciAplikasi() { 
-        sessionStorage.removeItem('sesi_aman_aliman'); 
-        window.location.reload(); 
+
+    function kunciAplikasi() {
+        sessionStorage.removeItem('sesi_aman_aliman');
+        window.location.reload();
     }
 
     window.onload = () => {
@@ -609,12 +730,12 @@
         let pilTahun = document.getElementById('saring-tahun');
         let pilTahunPajak = document.getElementById('saring-tahun-pajak');
         let tahunSekarang = new Date().getFullYear();
-        
+
         pilTahun.innerHTML = "";
         pilTahunPajak.innerHTML = "";
-        for(let i = tahunSekarang; i >= tahunSekarang - 5; i--) { 
-            pilTahun.innerHTML += `<option value="${i}">${i} Masehi</option>`; 
-            pilTahunPajak.innerHTML += `<option value="${i}">${i} Kalender</option>`; 
+        for(let i = tahunSekarang; i >= tahunSekarang - 5; i--) {
+            pilTahun.innerHTML += `<option value="${i}">${i} Masehi</option>`;
+            pilTahunPajak.innerHTML += `<option value="${i}">${i} Kalender</option>`;
         }
         document.getElementById('saring-bulan').value = new Date().getMonth() + 1;
         document.getElementById('formulir-tanggal').valueAsDate = new Date();
@@ -629,33 +750,35 @@
             if (!Array.isArray(basisDataAudit)) basisDataAudit = [];
         } catch(e) { basisDataAudit = []; }
 
-        bacaPengaturanInternet();
+        bacaStatusFirebaseLokal();
         hitungUangLayarUtama();
+        updateInfoFirebase();
+        mulaiFirebase();
     }
 
-    function ubahKeFormatRupiah(angka) { 
-        return new Intl.NumberFormat('id-ID').format(angka); 
+    function ubahKeFormatRupiah(angka) {
+        return new Intl.NumberFormat('id-ID').format(angka);
     }
-    
-    function sinkronNamaPengurus() { 
-        namaPetugasPengurus = document.getElementById('isian-nama-pengurus').value || "Sekretaris"; 
+
+    function sinkronNamaPengurus() {
+        namaPetugasPengurus = document.getElementById('isian-nama-pengurus').value || "Sekretaris";
         document.getElementById('teks-nama-pengurus').innerText = namaPetugasPengurus;
     }
 
     function pindahHalaman(idHalaman) {
         document.querySelectorAll('.bagian-halaman').forEach(el => el.classList.remove('aktif'));
         document.querySelectorAll('.tombol-menu-besar').forEach(el => el.classList.remove('terpilih'));
-        
+
         document.getElementById('hal-' + idHalaman).classList.add('aktif');
-        
+
         let letakIndex = 0;
         if(idHalaman === 'ringkasan') { letakIndex = 0; hitungUangLayarUtama(); }
         else if(idHalaman === 'catatbaru') { letakIndex = 1; }
         else if(idHalaman === 'laporanbulanan') { letakIndex = 2; }
         else if(idHalaman === 'pajaktahunan') { letakIndex = 3; }
         else if(idHalaman === 'catatanriwayat') { letakIndex = 4; muatTabelAuditTrail(); }
-        else if(idHalaman === 'kiriminternet') { letakIndex = 5; }
-        
+        else if(idHalaman === 'kiriminternet') { letakIndex = 5; updateInfoFirebase(); }
+
         document.querySelectorAll('.tombol-menu-besar')[letakIndex].classList.add('terpilih');
     }
 
@@ -664,17 +787,29 @@
     }
 
     function simpanKePenyimpananLokal() {
+        // LOCAL STORAGE SELALU DISIMPAN TERLEBIH DAHULU.
         localStorage.setItem('db_kas_aliman_biru', JSON.stringify(basisDataKas));
         localStorage.setItem('db_audit_aliman_biru', JSON.stringify(basisDataAudit));
         bikinCadanganOtomatis();
-        kirimDataKeGoogleSheets(); 
+        updateInfoFirebase();
+
+        // Jangan sinkronkan saat data sedang diterapkan dari listener Firebase.
+        if (!sedangMemuatDariFirebase) {
+            sinkronkanPerubahanLokalKeFirebase(false);
+        }
     }
 
     function tulisLogAudit(kegiatan, uangNominal, kodeId = "-") {
         let jamMasehi = new Date();
         let d = jamMasehi.toLocaleDateString('id-ID');
         let t = jamMasehi.toLocaleTimeString('id-ID');
-        basisDataAudit.push({ waktu: d + ' ' + t, nama: namaPetugasPengurus, aksi: kegiatan, dana: uangNominal, id: kodeId });
+        basisDataAudit.push({
+            waktu: d + ' ' + t,
+            nama: namaPetugasPengurus,
+            aksi: kegiatan,
+            dana: Number(uangNominal) || 0,
+            id: kodeId
+        });
         simpanKePenyimpananLokal();
     }
 
@@ -704,71 +839,229 @@
         }
     }
 
-    function simpanAturanInternet() {
-        localStorage.setItem('aliman_link_google', document.getElementById('tautan-google-script').value);
-        localStorage.setItem('aliman_kunci_google', document.getElementById('sandi-google-script').value);
-        alert("Pengaturan Link Berhasil Disimpan!");
-        bacaPengaturanInternet();
+    function bacaStatusFirebaseLokal() {
+        const waktu = localStorage.getItem('aliman_sinkron_terakhir') || 'Belum Pernah';
+        const el = document.getElementById('sync-waktu-koneksi');
+        if (el) el.innerText = waktu;
+        setStatusFirebase('Menunggu Login Firebase...', '#d97706');
+        const authEl = document.getElementById('firebase-auth-status');
+        if (authEl) authEl.innerText = 'Menunggu...';
     }
 
-    function bacaPengaturanInternet() {
-        document.getElementById('tautan-google-script').value = localStorage.getItem('aliman_link_google') || '';
-        document.getElementById('sandi-google-script').value = localStorage.getItem('aliman_kunci_google') || '';
-        document.getElementById('sync-waktu-koneksi').innerText = localStorage.getItem('aliman_sinkron_terakhir') || 'Belum Pernah';
-        
-        if(localStorage.getItem('aliman_link_google')) {
-            document.getElementById('sync-status-koneksi').innerText = 'Sudah Terhubung Online';
-            document.getElementById('sync-status-koneksi').style.color = '#0d9488';
-        } else {
-            document.getElementById('sync-status-koneksi').innerText = 'Belum Diatur';
-            document.getElementById('sync-status-koneksi').style.color = '#e11d48';
-        }
-    }
-
-    async function kirimDataKeGoogleSheets() {
-        let alamatTautan = localStorage.getItem('aliman_link_google');
-        let kataKunci = localStorage.getItem('aliman_kunci_google');
-        
-        if(!alamatTautan) {
-            document.getElementById('sync-status-koneksi').innerText = 'Belum Diatur';
-            document.getElementById('sync-status-koneksi').style.color = '#e11d48';
-            return;
-        }
-
-        document.getElementById('sync-status-koneksi').innerText = 'Sedang Mengirim Data...';
-        document.getElementById('sync-status-koneksi').style.color = '#d97706';
-
-        let formatKirimKas = basisDataKas.map(tx => ({
-            id: tx.id, tanggal: tx.tanggal, rekening: tx.rekening, arus: tx.jenis, nominal: tx.nominal, keterangan: tx.uraian
-        }));
-
-        let formatKirimAudit = basisDataAudit.map(log => ({
-            waktu: log.waktu, aksi: log.aksi, idTransaksi: log.id || '-'
-        }));
-
-        let isiPaket = {
-            action: 'syncData',
-            apiKey: kataKunci || '',
-            transaksi: formatKirimKas,
-            audit: formatKirimAudit
-        };
+    function mulaiFirebase() {
+        if (firebaseSiap) return;
 
         try {
-            await fetch(alamatTautan, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify(isiPaket)
+            if (!firebase.apps.length) {
+                firebaseApp = firebase.initializeApp(FIREBASE_CONFIG);
+            } else {
+                firebaseApp = firebase.app();
+            }
+
+            firebaseAuth = firebase.auth();
+            firebaseDb = firebase.database();
+            firebaseSiap = true;
+
+            setStatusFirebase('Firebase aktif, login...', '#d97706');
+
+            firebaseAuth.onAuthStateChanged(async (user) => {
+                const authEl = document.getElementById('firebase-auth-status');
+
+                if (user) {
+                    if (authEl) authEl.innerText = 'Login berhasil (ID anonim)';
+                    setStatusFirebase('Terhubung ke Firebase Realtime Database', '#0d9488');
+
+                    try {
+                        if (!localStorage.getItem(LOCAL_MIGRATION_FLAG)) {
+                            await migrasikanLokalKeFirebase(false);
+                        }
+                        pasangListenerFirebase();
+                        await sinkronkanPerubahanLokalKeFirebase(false);
+                    } catch (err) {
+                        console.error('Sinkronisasi Firebase:', err);
+                        setStatusFirebase('Login berhasil, tetapi sinkronisasi perlu diulang', '#d97706');
+                    }
+                } else {
+                    if (authEl) authEl.innerText = 'Belum login';
+                }
             });
 
-            let waktuSekarang = new Date().toLocaleString('id-ID');
-            localStorage.setItem('aliman_sinkron_terakhir', waktuSekarang);
-            document.getElementById('sync-waktu-koneksi').innerText = waktuSekarang;
-            document.getElementById('sync-jumlah-baris').innerText = formatKirimKas.length + formatKirimAudit.length;
-            document.getElementById('sync-status-koneksi').innerText = 'Berhasil Terkirim ke Internet!';
-            document.getElementById('sync-status-koneksi').style.color = '#0d9488';
-        } catch(e) {
-            document.getElementById('sync-status-koneksi').innerText = 'Gagal Mengirim (Tidak Ada Internet)';
-            document.getElementById('sync-status-koneksi').style.color = '#e11d48';
+            firebaseAuth.signInAnonymously().catch(err => {
+                console.error('Firebase Anonymous Auth gagal:', err);
+                const authEl = document.getElementById('firebase-auth-status');
+                if (authEl) authEl.innerText = 'Gagal login: ' + (err.code || err.message);
+                setStatusFirebase('Firebase siap, tetapi Authentication belum aktif', '#e11d48');
+            });
+        } catch (err) {
+            console.error('Inisialisasi Firebase gagal:', err);
+            setStatusFirebase('Gagal memuat Firebase', '#e11d48');
+            const authEl = document.getElementById('firebase-auth-status');
+            if (authEl) authEl.innerText = err.message || 'Error';
+        }
+    }
+
+    async function migrasikanLokalKeFirebase(tampilkanAlert = true) {
+        if (!firebaseSiap || !firebaseAuth || !firebaseAuth.currentUser || !firebaseDb) {
+            alert('Firebase belum login. Pastikan Anonymous Authentication Firebase sudah diaktifkan, lalu coba lagi.');
+            return false;
+        }
+
+        const transaksiPayload = {};
+        basisDataKas.forEach((rawTx) => {
+            const tx = normalizeTransaction(rawTx);
+            if (tx) transaksiPayload[safeFirebaseKey(tx.id)] = tx;
+        });
+
+        const auditPayload = {};
+        basisDataAudit.forEach((rawLog, index) => {
+            const log = normalizeAudit(rawLog);
+            if (log) {
+                const key = 'AUD-' + String(index).padStart(8, '0') + '-' + safeFirebaseKey(log.id);
+                auditPayload[key] = log;
+            }
+        });
+
+        setStatusFirebase('Sedang migrasi data lokal...', '#d97706');
+
+        try {
+            // update() hanya menambahkan/mengubah data yang dikirim.
+            // Tidak menghapus LocalStorage dan tidak menghapus node Firebase lain.
+            if (Object.keys(transaksiPayload).length) {
+                await firebaseDb.ref(FIREBASE_TRANSAKSI).update(transaksiPayload);
+            }
+            if (Object.keys(auditPayload).length) {
+                await firebaseDb.ref(FIREBASE_AUDIT).update(auditPayload);
+            }
+
+            localStorage.setItem(LOCAL_MIGRATION_FLAG, new Date().toISOString());
+            simpanSnapshotTerakhir();
+            simpanWaktuSinkron();
+            updateInfoFirebase();
+            setStatusFirebase('Migrasi berhasil ke Firebase', '#0d9488');
+
+            if (tampilkanAlert) {
+                alert('Berhasil. Data lokal tetap ada di HP dan sudah dikirim ke Firebase.');
+            }
+            return true;
+        } catch (err) {
+            console.error('Migrasi Firebase gagal:', err);
+            setStatusFirebase('Migrasi gagal: ' + (err.message || 'error'), '#e11d48');
+            if (tampilkanAlert) alert('Migrasi gagal. Periksa koneksi internet dan Firebase Rules/Authentication.');
+            return false;
+        }
+    }
+
+    async function sinkronkanPerubahanLokalKeFirebase(tampilkanAlert = false) {
+        if (sinkronSedangBerjalan) return false;
+        if (!firebaseSiap || !firebaseAuth || !firebaseAuth.currentUser || !firebaseDb) {
+            if (tampilkanAlert) alert('Firebase belum login. Data tetap aman tersimpan di HP.');
+            return false;
+        }
+
+        sinkronSedangBerjalan = true;
+        try {
+            const sebelum = bacaSnapshotTerakhir();
+            const updates = {};
+
+            const oldKas = {};
+            (Array.isArray(sebelum.kas) ? sebelum.kas : []).forEach(raw => {
+                const tx = normalizeTransaction(raw);
+                if (tx) oldKas[tx.id] = tx;
+            });
+
+            const newKas = {};
+            basisDataKas.forEach(raw => {
+                const tx = normalizeTransaction(raw);
+                if (tx) newKas[tx.id] = tx;
+            });
+
+            Object.keys(newKas).forEach(id => {
+                if (JSON.stringify(oldKas[id] || null) !== JSON.stringify(newKas[id])) {
+                    updates[FIREBASE_TRANSAKSI + '/' + safeFirebaseKey(id)] = newKas[id];
+                }
+            });
+            Object.keys(oldKas).forEach(id => {
+                if (!newKas[id]) {
+                    updates[FIREBASE_TRANSAKSI + '/' + safeFirebaseKey(id)] = null;
+                }
+            });
+
+            // Audit adalah append-only. Setiap audit lokal yang belum ada di snapshot
+            // dikirim dengan key stabil berdasarkan posisi + ID transaksi.
+            const oldAudit = Array.isArray(sebelum.audit) ? sebelum.audit : [];
+            basisDataAudit.forEach((rawLog, index) => {
+                const log = normalizeAudit(rawLog);
+                if (!log) return;
+                if (index >= oldAudit.length || JSON.stringify(oldAudit[index]) !== JSON.stringify(rawLog)) {
+                    const key = 'AUD-' + String(index).padStart(8, '0') + '-' + safeFirebaseKey(log.id);
+                    updates[FIREBASE_AUDIT + '/' + key] = log;
+                }
+            });
+
+            if (Object.keys(updates).length) {
+                setStatusFirebase('Menyinkronkan perubahan...', '#d97706');
+                await firebaseDb.ref().update(updates);
+                simpanSnapshotTerakhir();
+                simpanWaktuSinkron();
+            }
+
+            updateInfoFirebase();
+            setStatusFirebase('Tersinkron realtime', '#0d9488');
+
+            if (tampilkanAlert) alert('Sinkronisasi Firebase berhasil.');
+            return true;
+        } catch (err) {
+            console.error('Sinkronisasi perubahan gagal:', err);
+            setStatusFirebase('Sinkronisasi gagal', '#e11d48');
+            if (tampilkanAlert) alert('Sinkronisasi gagal: ' + (err.message || 'error'));
+            return false;
+        } finally {
+            sinkronSedangBerjalan = false;
+        }
+    }
+
+    function pasangListenerFirebase() {
+        if (!firebaseDb) return;
+
+        if (!listenerTransaksiTerpasang) {
+            listenerTransaksiTerpasang = true;
+            firebaseDb.ref(FIREBASE_TRANSAKSI).on('value', (snapshot) => {
+                const obj = snapshot.val() || {};
+                const arr = Object.keys(obj).map(k => normalizeTransaction(obj[k])).filter(Boolean);
+
+                sedangMemuatDariFirebase = true;
+                basisDataKas = arr;
+                localStorage.setItem('db_kas_aliman_biru', JSON.stringify(basisDataKas));
+                bikinCadanganOtomatis();
+                sedangMemuatDariFirebase = false;
+
+                updateInfoFirebase();
+                hitungUangLayarUtama();
+                if (document.getElementById('hal-laporanbulanan')?.classList.contains('aktif')) hitungBukuKasBulanan();
+                if (document.getElementById('hal-pajaktahunan')?.classList.contains('aktif')) prosesDataPajakTahunan();
+            }, (err) => {
+                console.error('Listener transaksi:', err);
+                setStatusFirebase('Gagal membaca transaksi Firebase', '#e11d48');
+            });
+        }
+
+        if (!listenerAuditTerpasang) {
+            listenerAuditTerpasang = true;
+            firebaseDb.ref(FIREBASE_AUDIT).on('value', (snapshot) => {
+                const obj = snapshot.val() || {};
+                const arr = Object.keys(obj).sort().map(k => normalizeAudit(obj[k])).filter(Boolean);
+
+                sedangMemuatDariFirebase = true;
+                basisDataAudit = arr;
+                localStorage.setItem('db_audit_aliman_biru', JSON.stringify(basisDataAudit));
+                bikinCadanganOtomatis();
+                sedangMemuatDariFirebase = false;
+
+                updateInfoFirebase();
+                if (document.getElementById('hal-catatanriwayat')?.classList.contains('aktif')) muatTabelAuditTrail();
+            }, (err) => {
+                console.error('Listener audit:', err);
+            });
         }
     }
 
