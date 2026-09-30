@@ -5,49 +5,53 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Buku Kas Digital - Masjid Al Iman</title>
     
-    <!-- Pengaturan agar bisa diinstal di HP Android / iPhone -->
+    <!-- Pengaturan PWA -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#0284c7">
+    <meta name="theme-color" content="#064e3b">
     
-    <!-- Link ke Manifest untuk Fitur PWA (Aplikasi HP) -->
     <link rel="manifest" href="manifest.json">
     
-    <!-- Script untuk mendaftarkan Service Worker -->
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', function() {
-          navigator.serviceWorker.register('sw.js').then(function(registration) {
-            console.log('ServiceWorker berhasil didaftarkan.');
-          }, function(err) {
-            console.log('ServiceWorker gagal didaftarkan: ', err);
-          });
+          navigator.serviceWorker.register('sw.js').catch(function(err) {});
         });
       }
     </script>
     
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Firebase Realtime Database + Authentication -->
+    
+    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
     
     <style>
+        /* =======================================================
+           DESAIN UI NATIVE APP MODERN & EKSKLUSIF
+           ======================================================= */
         :root {
-            --biru-langit-utama: #0ea5e9;
-            --biru-langit-terang: #e0f2fe;
-            --biru-langit-sedang: #bae6fd;
-            --biru-tua-kontras: #0369a1;
-            --teks-gelap-pekat: #0f172a;
-            --teks-abu-jelas: #475569;
-            --latar-halaman: #f8fafc;
-            --lengkungan-kotak: 20px;
+            /* Warna Tema Premium (Emerald & Slate) */
+            --primary: #059669; /* Emerald Green */
+            --primary-dark: #047857;
+            --primary-light: #d1fae5;
+            --secondary: #0f172a; /* Slate 900 */
+            --accent: #d97706; /* Gold/Amber */
+            --bg-app: #f1f5f9;
+            --bg-card: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --danger: #e11d48;
+            --success: #059669;
             
-            /* Ukuran huruf ekstra besar khusus lansia */
-            --huruf-paling-besar: 26px;
-            --huruf-tombol: 18px;
-            --huruf-penjelasan: 16px;
+            --radius-lg: 24px;
+            --radius-md: 16px;
+            --radius-sm: 10px;
+            
+            --shadow-soft: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+            --shadow-float: 0 20px 25px -5px rgba(5, 150, 105, 0.1), 0 10px 10px -5px rgba(5, 150, 105, 0.04);
         }
 
         * { 
@@ -59,173 +63,216 @@
         }
 
         body {
-            background-color: var(--latar-halaman);
-            background-image: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-            color: var(--teks-gelap-pekat);
+            background-color: var(--bg-app);
+            color: var(--text-main);
             min-height: 100vh;
-            padding: 12px;
-            font-size: var(--huruf-penjelasan);
+            font-size: 15px;
+            line-height: 1.5;
         }
 
-        /* --- HALAMAN KUNCI KEAMANAN (MASUK) --- */
+        /* --- LAYAR KUNCI (LOCK SCREEN NATIVE) --- */
         #layar-kunci {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(135deg, #0284c7 0%, #1e3a8a 100%);
+            background: var(--secondary);
+            background-image: radial-gradient(circle at top right, #1e293b, #0f172a);
             z-index: 9999;
             display: flex; justify-content: center; align-items: center; flex-direction: column;
-            padding: 15px;
+            padding: 20px;
         }
         .kotak-pembuka {
-            background: white; padding: 35px 20px; border-radius: var(--lengkungan-kotak);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
-            text-align: center; max-width: 450px; width: 100%;
-            border-bottom: 10px solid #0284c7;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 40px 30px; 
+            border-radius: var(--radius-lg);
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+            text-align: center; max-width: 400px; width: 100%;
         }
-        .kotak-pembuka h2 { color: var(--teks-gelap-pekat); margin-bottom: 8px; font-size: var(--huruf-paling-besar); font-weight: 800; }
-        .kotak-pembuka p.alamat { color: var(--teks-abu-jelas); font-size: 14px; margin-bottom: 25px; line-height: 1.5; }
-        .kotak-pembuka input {
-            width: 100%; padding: 20px; border: 4px solid #cbd5e1; border-radius: 12px;
-            margin-bottom: 20px; font-size: 28px; text-align: center; font-weight: 800; letter-spacing: 10px;
-            outline: none; background: #f8fafc;
+        .kotak-pembuka img {
+            width: 90px; height: 90px; object-fit: cover; 
+            border-radius: 22px; margin-bottom: 20px; 
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            border: 2px solid rgba(255,255,255,0.2);
         }
-        .kotak-pembuka input:focus { border-color: var(--biru-langit-utama); background: white; }
-        .kotak-pembuka button {
-            width: 100%; padding: 20px; background: var(--biru-tua-kontras); color: white;
-            border: none; border-radius: 12px; font-size: var(--huruf-tombol); font-weight: bold; cursor: pointer;
-            box-shadow: 0 6px 15px rgba(3, 105, 161, 0.3);
-        }
+        .kotak-pembuka h2 { color: #fff; margin-bottom: 5px; font-size: 24px; font-weight: 700; }
+        .kotak-pembuka p.alamat { color: #94a3b8; font-size: 13px; margin-bottom: 30px; }
         
-        #wadah-aplikasi { display: none; max-width: 1100px; margin: 0 auto; }
+        .kotak-pembuka input {
+            width: 100%; padding: 18px; border: none; border-radius: var(--radius-md);
+            margin-bottom: 20px; font-size: 24px; text-align: center; font-weight: 800; letter-spacing: 12px;
+            outline: none; background: rgba(255,255,255,0.9); color: var(--secondary);
+            transition: all 0.3s;
+        }
+        .kotak-pembuka input:focus { background: #fff; box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.3); }
+        .kotak-pembuka button {
+            width: 100%; padding: 18px; background: var(--primary); color: white;
+            border: none; border-radius: var(--radius-md); font-size: 16px; font-weight: 700; cursor: pointer;
+            transition: all 0.3s;
+        }
+        .kotak-pembuka button:active { transform: scale(0.97); }
+        
+        #wadah-aplikasi { display: none; max-width: 1000px; margin: 0 auto; padding: 20px 15px; padding-bottom: 100px; }
 
-        /* --- KEPALA APLIKASI (HEADER) --- */
+        /* --- KEPALA APLIKASI (HEADER MODERN) --- */
         .kepala-aplikasi { 
-            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); 
-            padding: 20px; border-radius: var(--lengkungan-kotak); color: white; margin-bottom: 15px; 
-            border-bottom: 6px solid #bae6fd; display: flex; flex-direction: column; gap: 12px; text-align: center;
-            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.15);
+            background: var(--bg-card); 
+            padding: 20px; border-radius: var(--radius-lg); margin-bottom: 20px; 
+            display: flex; flex-direction: column; gap: 15px; 
+            box-shadow: var(--shadow-soft);
         }
-        .judul-masjid h1 { font-size: 24px; font-weight: 800; color: white; }
-        .judul-masjid p { font-size: 13px; color: #e0f2fe; margin-top: 4px; line-height: 1.4; }
-        .info-pengurus-kanan { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.15); padding: 12px; border-radius: 10px; font-size: 14px; }
+        .merek-sistem { display: flex; align-items: center; gap: 15px; }
+        .merek-sistem img { width: 55px; height: 55px; border-radius: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
+        .judul-masjid h1 { font-size: 18px; font-weight: 800; color: var(--secondary); line-height: 1.2; }
+        .judul-masjid p { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+        
+        .info-pengurus-kanan { 
+            display: flex; justify-content: space-between; align-items: center; 
+            background: var(--bg-app); padding: 12px 15px; border-radius: var(--radius-md); 
+            font-size: 14px; font-weight: 600; color: var(--secondary);
+        }
 
-        /* --- MENU UTAMA RAKSASA KHUSUS HP (RAMAH LANSIA) --- */
-        /* MODIFIKASI: Mengubah grid menu utama agar mendukung 7 tombol */
-        .pilihan-menu-utama { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
-        .tombol-menu-besar { 
-            background: white; color: var(--teks-gelap-pekat); border: 3px solid #cbd5e1; 
-            padding: 22px 10px; font-size: var(--huruf-tombol); font-weight: 800; border-radius: var(--lengkungan-kotak); 
-            cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.03); transition: all 0.15s; text-align: center;
+        /* --- MENU UTAMA (GRID NATIVE APP) --- */
+        .pilihan-menu-utama { 
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 25px; 
         }
-        .tombol-menu-besar i { font-size: 30px; color: var(--biru-tua-kontras); }
-        .tombol-menu-besar.terpilih { background: var(--biru-tua-kontras); color: white; border-color: var(--biru-tua-kontras); }
-        .tombol-menu-besar.terpilih i { color: white; }
+        .tombol-menu-besar { 
+            background: var(--bg-card); color: var(--text-muted); border: none; 
+            padding: 15px 10px; font-size: 12px; font-weight: 600; border-radius: var(--radius-md); 
+            cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 10px; 
+            box-shadow: var(--shadow-soft); transition: all 0.2s;
+        }
+        .tombol-menu-besar .icon-wrapper {
+            width: 45px; height: 45px; border-radius: 14px; background: var(--bg-app);
+            display: flex; justify-content: center; align-items: center; font-size: 20px;
+            color: var(--secondary); transition: all 0.2s;
+        }
+        .tombol-menu-besar.terpilih { color: var(--primary); }
+        .tombol-menu-besar.terpilih .icon-wrapper { background: var(--primary); color: white; box-shadow: var(--shadow-float); }
         
         /* Baris Pengurus & Tombol Pengaman */
-        .baris-pengurus { grid-column: span 2; background: #e0f2fe; padding: 12px; border-radius: 14px; border: 2px solid #bae6fd; display: flex; align-items: center; gap: 10px; }
-        .baris-pengurus label { font-size: 14px; font-weight: 800; color: var(--biru-tua-kontras); white-space: nowrap; }
-        .kolom-isi-nama { width: 100%; padding: 10px; border-radius: 8px; border: 2px solid #0369a1; font-weight: 700; font-size: 15px; outline: none; }
+        .baris-pengurus { grid-column: span 4; background: var(--bg-card); padding: 15px; border-radius: var(--radius-md); display: flex; align-items: center; gap: 10px; box-shadow: var(--shadow-soft); }
+        .baris-pengurus label { font-size: 13px; font-weight: 700; color: var(--text-muted); white-space: nowrap; }
+        .kolom-isi-nama { width: 100%; padding: 10px 15px; border-radius: var(--radius-sm); border: 1px solid #e2e8f0; font-weight: 700; font-size: 14px; background: var(--bg-app); outline: none; }
+        .kolom-isi-nama:focus { border-color: var(--primary); background: #fff; }
         
-        .grup-tombol-cadangan { grid-column: span 2; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; background: #f1f5f9; padding: 10px; border-radius: 14px; }
-        .tombol-kecil-cadangan { padding: 12px 6px; font-size: 12px; font-weight: 800; border: none; border-radius: 8px; cursor: pointer; color: white; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .grup-tombol-cadangan { grid-column: span 4; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 5px; }
+        .tombol-kecil-cadangan { padding: 10px 5px; font-size: 11px; font-weight: 700; border: none; border-radius: var(--radius-sm); cursor: pointer; color: white; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .tombol-kecil-cadangan i { font-size: 16px; }
 
         /* --- HALAMAN KONTEN --- */
-        .bagian-halaman { display: none; }
+        .bagian-halaman { display: none; animation: fadeIn 0.3s ease; }
         .bagian-halaman.aktif { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* --- KARTU INDIKATOR SALDO --- */
-        .judul-sub-halaman { font-size: 19px; font-weight: 800; color: var(--biru-tua-kontras); margin-bottom: 12px; margin-top: 10px; display: flex; align-items: center; gap: 8px; }
-        .deretan-kartu-saldo { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+        /* --- KARTU SALDO (DIGITAL WALLET STYLE) --- */
+        .judul-sub-halaman { font-size: 16px; font-weight: 700; color: var(--secondary); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        
+        .deretan-kartu-saldo { display: grid; grid-template-columns: 1fr; gap: 15px; margin-bottom: 25px; }
+        
         .kartu-saldo-putih { 
-            background: white; border-radius: var(--lengkungan-kotak); padding: 18px; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.02); border: 3px solid #e2e8f0; border-left: 10px solid var(--biru-tua-kontras); 
+            background: var(--bg-card); border-radius: var(--radius-lg); padding: 20px; 
+            box-shadow: var(--shadow-soft); position: relative; overflow: hidden;
+            border: 1px solid rgba(0,0,0,0.03);
         }
-        .kartu-saldo-putih.warna-masuk { border-left-color: #0d9488; } 
-        .kartu-saldo-putih.warna-keluar { border-left-color: #e11d48; } 
-        .kartu-saldo-putih.warna-sisa { border-left-color: #2563eb; }
-        .kartu-saldo-putih.warna-total-data { border-left-color: #4f46e5; }
-        .kartu-saldo-putih span.tulisan-kecil { font-size: 12px; color: var(--teks-abu-jelas); text-transform: uppercase; font-weight: 800; display: block; margin-bottom: 6px; letter-spacing: 0.5px; }
-        .kartu-saldo-putih h2.angka-saldo-besar { font-size: 26px; font-weight: 800; color: var(--teks-gelap-pekat); }
-        .warna-teks-masuk { color: #0d9488 !important; } .warna-teks-keluar { color: #e11d48 !important; }
+        /* Gradient khusus untuk Kas Umum agar terlihat seperti kartu utama */
+        .kartu-utama {
+            background: linear-gradient(135deg, var(--secondary) 0%, #1e293b 100%);
+            color: white;
+        }
+        .kartu-utama .tulisan-kecil { color: #94a3b8; }
+        .kartu-utama .angka-saldo-besar { color: white; }
+        
+        .kartu-saldo-putih::after {
+            content: ''; position: absolute; top: -20px; right: -20px; width: 100px; height: 100px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%); border-radius: 50%;
+        }
 
-        /* --- PAPAN KERJA & FORMULIR ISI DATA --- */
-        .papan-kerja-putih { background: white; border-radius: var(--lengkungan-kotak); padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); border: 3px solid #cbd5e1; margin-bottom: 20px; }
-        .susunan-formulir { display: flex; flex-direction: column; gap: 18px; margin-bottom: 15px; }
-        .kotak-isian { display: flex; flex-direction: column; gap: 6px; }
-        .kotak-isian label { font-size: var(--huruf-penjelasan); font-weight: 800; color: var(--teks-gelap-pekat); }
+        .kartu-saldo-putih span.tulisan-kecil { font-size: 12px; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 8px; }
+        .kartu-saldo-putih h2.angka-saldo-besar { font-size: 28px; font-weight: 800; color: var(--secondary); letter-spacing: -0.5px; }
+        .warna-teks-masuk { color: var(--success) !important; } 
+        .warna-teks-keluar { color: var(--danger) !important; }
+
+        /* --- PAPAN KERJA & FORMULIR --- */
+        .papan-kerja-putih { background: var(--bg-card); border-radius: var(--radius-lg); padding: 25px; box-shadow: var(--shadow-soft); margin-bottom: 25px; }
+        .susunan-formulir { display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; }
+        .kotak-isian { display: flex; flex-direction: column; gap: 8px; }
+        .kotak-isian label { font-size: 13px; font-weight: 700; color: var(--secondary); }
         .kotak-isian input, .kotak-isian select { 
-            padding: 18px; border-radius: 12px; border: 3px solid #cbd5e1; 
-            font-size: var(--huruf-tombol); font-weight: 700; color: var(--teks-gelap-pekat); outline: none; background-color: #f8fafc;
+            padding: 16px; border-radius: var(--radius-md); border: 1px solid #e2e8f0; 
+            font-size: 15px; font-weight: 600; color: var(--secondary); outline: none; background-color: #f8fafc;
+            transition: all 0.2s;
         }
-        .kotak-isian input:focus, .kotak-isian select:focus { border-color: var(--biru-langit-utama); background-color: #fff; }
-        .petunjuk-isian { font-size: 13px; color: var(--teks-abu-jelas); font-weight: 600; margin-top: 2px; }
+        .kotak-isian input:focus, .kotak-isian select:focus { border-color: var(--primary); background-color: #fff; box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1); }
+        .petunjuk-isian { font-size: 12px; color: var(--text-muted); font-weight: 500; }
 
         /* KOTAK FILTER SORTING */
-        .kotak-penyaring { background: #e0f2fe; padding: 15px; border-radius: 14px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; border: 2px solid #bae6fd; }
-        .kotak-penyaring select { padding: 16px; border-radius: 10px; border: 2px solid #0369a1; font-size: 16px; font-weight: 700; outline: none; width: 100%; color: var(--teks-gelap-pekat); }
+        .kotak-penyaring { background: var(--bg-app); padding: 15px; border-radius: var(--radius-md); display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+        .kotak-penyaring select { padding: 14px; border-radius: var(--radius-sm); border: 1px solid #cbd5e1; font-size: 14px; font-weight: 600; outline: none; width: 100%; }
         
-        /* TOMBOL AKSI SELESAI */
+        /* TOMBOL AKSI */
         .grup-tombol-aksi { display: flex; flex-direction: column; gap: 10px; }
         .tombol-utama-lebar { 
-            width: 100%; padding: 20px; color: white; border: none; border-radius: 12px; 
-            font-size: var(--huruf-tombol); font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            width: 100%; padding: 18px; color: white; border: none; border-radius: var(--radius-md); 
+            font-size: 15px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; 
+            transition: all 0.2s;
         }
-        .tombol-biru-langit { background: #0284c7; }
-        .tombol-biru-tua { background: #1e3a8a; }
-        .tombol-hijau-daun { background: #0d9488; }
-        .tombol-abu-abu { background: #64748b; }
+        .tombol-utama-lebar:active { transform: scale(0.98); }
+        .tombol-biru-langit { background: var(--primary); box-shadow: var(--shadow-float); }
+        .tombol-biru-tua { background: var(--secondary); }
+        .tombol-hijau-daun { background: #0ea5e9; }
+        .tombol-abu-abu { background: #94a3b8; }
 
-        /* --- STRUKTUR TABEL LAPORAN --- */
-        .wadah-tabel-gulung { overflow-x: auto; margin-top: 10px; border-radius: 12px; border: 2px solid #cbd5e1; }
-        table { width: 100%; border-collapse: collapse; font-size: 14px; background: white; }
-        th { background: #e2e8f0; color: var(--teks-gelap-pekat); font-weight: 800; padding: 14px 10px; font-size: 12px; text-align: left; border-bottom: 3px solid #cbd5e1; text-transform: uppercase; }
-        td { padding: 14px 10px; border-bottom: 1px solid #e2e8f0; font-weight: 700; color: var(--teks-gelap-pekat); }
+        /* --- STRUKTUR TABEL (CLEAN LOOK) --- */
+        .wadah-tabel-gulung { overflow-x: auto; margin-top: 10px; border-radius: var(--radius-md); border: 1px solid #f1f5f9; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; background: white; white-space: nowrap; }
+        th { background: #f8fafc; color: var(--text-muted); font-weight: 700; padding: 15px; text-align: left; border-bottom: 2px solid #f1f5f9; }
+        td { padding: 15px; border-bottom: 1px solid #f1f5f9; font-weight: 600; color: var(--secondary); }
         
-        /* Tombol kelola di baris tabel */
-        .tombol-kelola-baris { display: flex; gap: 6px; }
-        .tombol-mini { padding: 12px 14px; border-radius: 8px; border: none; color: white; cursor: pointer; font-size: 13px; font-weight: bold; display: inline-flex; align-items: center; gap: 4px; }
-        .warna-merah-hapus { background: #e11d48; } .warna-biru-ubah { background: #2563eb; }
+        .tombol-kelola-baris { display: flex; gap: 8px; }
+        .tombol-mini { padding: 8px 12px; border-radius: 8px; border: none; color: white; cursor: pointer; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+        .warna-merah-hapus { background: #fee2e2; color: var(--danger); } 
+        .warna-biru-ubah { background: #e0f2fe; color: #0284c7; }
 
-        /* KOTAK REKAPITULASI BAWAH */
-        .kotak-rekap-buku { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; background: #fff; padding: 15px; border-radius: 14px; margin-bottom: 15px; border: 2px solid #cbd5e1; }
-        .item-rekap { display: flex; flex-direction: column; gap: 4px; background: #f8fafc; padding: 12px; border-radius: 8px; text-align: center; border: 1px solid #e2e8f0; }
-        .item-rekap.gabung-dua { grid-column: span 2; }
-        .label-rekap { font-size: 11px; font-weight: 800; color: var(--teks-abu-jelas); text-transform: uppercase; }
-        .angka-rekap { font-size: 17px; font-weight: 800; }
+        /* KOTAK REKAPITULASI */
+        .kotak-rekap-buku { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
+        .item-rekap { display: flex; flex-direction: column; gap: 5px; background: var(--bg-app); padding: 15px; border-radius: var(--radius-md); text-align: center; }
+        .item-rekap.gabung-dua { grid-column: span 2; background: var(--primary-light); }
+        .label-rekap { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .item-rekap.gabung-dua .label-rekap { color: var(--primary-dark); }
+        .angka-rekap { font-size: 18px; font-weight: 800; color: var(--secondary); }
 
         /* KOTAK PAJAK TAHUNAN */
-        .kotak-spt-pajak { background: white; border: 2px solid #cbd5e1; border-radius: 14px; padding: 15px; margin-bottom: 12px; }
-        .kotak-spt-pajak h4 { border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 12px; color: var(--biru-tua-kontras); font-size: 16px; font-weight: 800; }
-        .baris-spt { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; font-weight: 700; }
-        .baris-spt.total-akhir { font-weight: 800; font-size: 16px; border-top: 2px dashed #cbd5e1; padding-top: 8px; margin-top: 8px; color: var(--biru-tua-kontras); }
+        .kotak-spt-pajak { background: white; border: 1px solid #e2e8f0; border-radius: var(--radius-md); padding: 20px; margin-bottom: 15px; }
+        .kotak-spt-pajak h4 { margin-bottom: 15px; color: var(--secondary); font-size: 15px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+        .baris-spt { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 13px; font-weight: 600; color: var(--text-muted); }
+        .baris-spt.total-akhir { font-weight: 800; font-size: 15px; border-top: 1px dashed #cbd5e1; padding-top: 12px; margin-top: 5px; color: var(--secondary); }
 
-        /* --- TAMPILAN KHUSUS KOMPUTER / LAPTOP (LAYAR LEBAR) --- */
+        /* --- RESPONSIVE DESKTOP --- */
         @media (min-width: 768px) {
-            body { padding: 25px; }
-            .kepala-aplikasi { flex-direction: row; text-align: left; padding: 20px 30px; justify-content: space-between; align-items: center; }
-            /* MODIFIKASI: Mendukung 7 kolom untuk menu baru */
+            body { padding: 30px; background-image: radial-gradient(circle at top, #f8fafc, #e2e8f0); }
+            .kepala-aplikasi { flex-direction: row; justify-content: space-between; align-items: center; padding: 20px 30px; }
             .pilihan-menu-utama { grid-template-columns: repeat(7, 1fr); }
-            .grup-tombol-cadangan { grid-column: span 7; grid-template-columns: repeat(4, 1fr); width: auto; margin-left: auto; gap: 10px; }
-            .baris-pengurus { grid-column: span 7; width: 320px; margin-left: auto; }
-            .deretan-kartu-saldo { grid-template-columns: repeat(3, 1fr); flex-direction: row; flex-wrap: wrap; }
-            .deretan-kartu-saldo > div { flex: 1; min-width: 250px; }
+            .baris-pengurus { grid-column: span 7; width: 350px; margin-left: auto; }
+            .grup-tombol-cadangan { grid-column: span 7; display: flex; justify-content: flex-end; }
+            .tombol-kecil-cadangan { padding: 10px 15px; flex-direction: row; }
+            .deretan-kartu-saldo { grid-template-columns: repeat(3, 1fr); }
+            #hal-ringkasan .deretan-kartu-saldo:nth-of-type(2) { grid-template-columns: repeat(4, 1fr); }
             .susunan-formulir { grid-template-columns: repeat(2, 1fr); }
             .kotak-rekap-buku { grid-template-columns: repeat(4, 1fr); }
             .item-rekap.gabung-dua { grid-column: span 1; }
             .kotak-penyaring { flex-direction: row; align-items: center; }
-            .kotak-penyaring select { width: auto; flex: 1; }
             .grup-tombol-aksi { flex-direction: row; }
-            .tombol-utama-lebar { width: auto; padding: 16px 32px; }
         }
 
-        /* --- TAMPILAN KHUSUS KALAU KERTAS DICETAK (PRINT) --- */
+        /* --- PRINT MEDIA --- */
         @media print {
             @page { size: A4 landscape; margin: 15mm; }
             body { background: white !important; padding: 0 !important; color: black !important; font-size: 12px; }
             .no-cetak { display: none !important; } .hanya-cetak { display: block !important; }
-            .header-kertas-cetak { text-align: center; border-bottom: 5px double black; margin-bottom: 20px; padding-bottom: 15px; }
-            .header-kertas-cetak h1 { font-size: 26px; margin: 0; color: #000; font-weight: 800; }
-            .header-kertas-cetak h2 { font-size: 16px; margin: 5px 0; font-weight: bold; text-transform: uppercase; }
+            .header-kertas-cetak { text-align: center; border-bottom: 3px solid black; margin-bottom: 20px; padding-bottom: 15px; }
+            .header-kertas-cetak h1 { font-size: 22px; margin: 0; color: #000; font-weight: 800; }
+            .header-kertas-cetak h2 { font-size: 14px; margin: 5px 0; font-weight: bold; text-transform: uppercase; }
             .papan-kerja-putih, .kotak-rekap-buku, .kotak-spt-pajak { box-shadow: none; border: none; padding: 0; }
             .kotak-rekap-buku { border: 1px solid black; margin-bottom: 15px; padding: 10px; display: grid; grid-template-columns: repeat(4, 1fr); }
             .item-rekap { border: none; background: none; padding: 0; text-align: left; }
@@ -242,20 +289,16 @@
 </head>
 <body>
 
-<!-- HALAMAN KUNCI KEAMANAN (KATA SANDI AWAL) -->
+<!-- HALAMAN KUNCI KEAMANAN -->
 <div id="layar-kunci">
     <div class="kotak-pembuka">
-        <!-- Logo Masjid telah ditambahkan ke Layar Kunci -->
-        <img src="Al-iman.jpeg" alt="Logo Masjid Al Iman" style="width: 100px; height: 100px; object-fit: cover; border-radius: 16px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); background: white; padding: 4px;">
+        <img src="Al-iman.jpeg" alt="Logo Masjid" onerror="this.src='https://via.placeholder.com/90?text=Al-Iman'">
         <h2>Masjid Al Iman</h2>
-        <p class="alamat">Jl. H Ung RT 014/02, Kel. Utan Panjang, Kec. Kemayoran, Jakarta Pusat</p>
-        <div style="background: #f0f9ff; padding: 12px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #bae6fd;">
-            <p style="color: var(--biru-tua-kontras); font-size: 14px; font-weight: 700;">Masukkan Kode Rahasia Pengurus:</p>
-        </div>
+        <p class="alamat">Buku Kas & Inventaris Digital</p>
         <input type="password" id="sandi-rahasia" inputmode="numeric" pattern="[0-9]*" placeholder="••••••" onkeypress="if(event.key === 'Enter') validasiSandi()">
-        <button onclick="validasiSandi()"><i class="fa fa-lock-open"></i> MASUK KE BUKU KAS</button>
-        <p id="sandi-salah-notif" style="color: #e11d48; font-size: 15px; font-weight: bold; margin-top: 15px; display: none;">
-            <i class="fa fa-exclamation-circle"></i> KODE SALAH! Sila ketik ulang dengan teliti.
+        <button onclick="validasiSandi()">Buka Aplikasi</button>
+        <p id="sandi-salah-notif" style="color: #fca5a5; font-size: 13px; font-weight: 600; margin-top: 15px; display: none;">
+            <i class="fa fa-exclamation-circle"></i> PIN Tidak Sesuai. Coba lagi.
         </p>
     </div>
 </div>
@@ -263,77 +306,101 @@
 <!-- WADAH UTAMA APLIKASI -->
 <div id="wadah-aplikasi">
     
-    <!-- KEPALA APLIKASI (HEADER) -->
+    <!-- HEADER MODERN -->
     <div class="kepala-aplikasi no-cetak">
-        <!-- Logo Masjid telah ditambahkan ke Header beserta penyesuaian tata letak -->
-        <div class="merek-sistem" style="display: flex; align-items: center; gap: 15px; justify-content: center;">
-            <img src="Al-iman.jpeg" alt="Logo Masjid Al Iman" style="width: 60px; height: 60px; object-fit: cover; border-radius: 12px; background: white; padding: 3px;">
-            <div class="judul-masjid" style="text-align: left;">
-                <h1>Buku Catatan Keuangan Masjid Al Iman</h1>
-                <p><i class="fa fa-map-marker-alt"></i> H Ung RT 014/02 Kel. Utan Panjang, Jakarta Pusat</p>
+        <div class="merek-sistem">
+            <img src="Al-iman.jpeg" alt="Logo" onerror="this.src='https://via.placeholder.com/55?text=Logo'">
+            <div class="judul-masjid">
+                <h1>Buku Kas Al Iman</h1>
+                <p><i class="fa fa-map-marker-alt" style="color:var(--primary)"></i> Kemayoran, Jakarta Pusat</p>
             </div>
         </div>
         <div class="info-pengurus-kanan">
-            <span><i class="fa fa-user-check"></i> Petugas: <b id="teks-nama-pengurus">Sekretaris</b></span>
-            <button onclick="kunciAplikasi()" style="background: #e11d48; color: white; border: none; padding: 6px 14px; border-radius: 6px; font-weight: bold; margin-left: 15px; cursor: pointer;"><i class="fa fa-key"></i> Kunci</button>
+            <span style="display:flex; align-items:center; gap:8px;">
+                <div style="width:28px; height:28px; background:var(--primary); color:white; border-radius:50%; display:flex; justify-content:center; align-items:center; font-size:12px;"><i class="fa fa-user"></i></div>
+                <span id="teks-nama-pengurus">Sekretaris</span>
+            </span>
+            <button onclick="kunciAplikasi()" style="background: var(--danger); color: white; border: none; padding: 8px 15px; border-radius: 8px; font-weight: 600; cursor: pointer; display:flex; gap:5px; align-items:center;">
+                <i class="fa fa-lock"></i> Kunci
+            </button>
         </div>
     </div>
 
-    <!-- MENU UTAMA RAKSASA (PILIHAN NAVIGASI) -->
+    <!-- MENU UTAMA GRID -->
     <div class="pilihan-menu-utama no-cetak">
-        <button class="tombol-menu-besar terpilih" onclick="pindahHalaman('ringkasan')"><i class="fa fa-wallet"></i> 1. Lihat Saldo</button>
-        <button class="tombol-menu-besar" onclick="pindahHalaman('catatbaru')"><i class="fa fa-pencil-alt"></i> 2. Catat Uang</button>
-        <button class="tombol-menu-besar" onclick="pindahHalaman('laporanbulanan')"><i class="fa fa-book"></i> 3. Lap. Bulanan</button>
-        <button class="tombol-menu-besar" onclick="pindahHalaman('pajaktahunan')"><i class="fa fa-file-invoice-dollar"></i> 4. Lap. Pajak</button>
-        <button class="tombol-menu-besar" onclick="pindahHalaman('catatanriwayat')"><i class="fa fa-history"></i> 5. Riwayat Kerja</button>
-        <button class="tombol-menu-besar" onclick="pindahHalaman('kiriminternet')"><i class="fa fa-cloud-upload-alt"></i> 6. Kirim Internet</button>
-        <!-- TAMBAHAN TOMBOL DONASI BARANG -->
-        <button class="tombol-menu-besar" onclick="pindahHalaman('catatbarang')"><i class="fa fa-boxes"></i> 7. Donasi Barang</button>
+        <button class="tombol-menu-besar terpilih" onclick="pindahHalaman('ringkasan')">
+            <div class="icon-wrapper"><i class="fa fa-wallet"></i></div> Saldo
+        </button>
+        <button class="tombol-menu-besar" onclick="pindahHalaman('catatbaru')">
+            <div class="icon-wrapper"><i class="fa fa-plus-circle"></i></div> Catat Uang
+        </button>
+        <button class="tombol-menu-besar" onclick="pindahHalaman('laporanbulanan')">
+            <div class="icon-wrapper"><i class="fa fa-file-invoice"></i></div> Laporan
+        </button>
+        <button class="tombol-menu-besar" onclick="pindahHalaman('catatbarang')">
+            <div class="icon-wrapper"><i class="fa fa-box-open"></i></div> Material
+        </button>
+        <button class="tombol-menu-besar" onclick="pindahHalaman('pajaktahunan')">
+            <div class="icon-wrapper"><i class="fa fa-chart-pie"></i></div> Tahunan
+        </button>
+        <button class="tombol-menu-besar" onclick="pindahHalaman('catatanriwayat')">
+            <div class="icon-wrapper"><i class="fa fa-history"></i></div> Riwayat
+        </button>
+        <button class="tombol-menu-besar" onclick="pindahHalaman('kiriminternet')">
+            <div class="icon-wrapper"><i class="fa fa-cloud-sync"></i></div> Cloud
+        </button>
         
-        <!-- PENGATURAN NAMA PETUGAS LANSIA -->
         <div class="baris-pengurus">
-            <label for="isian-nama-pengurus">Nama Pengurus:</label>
+            <label for="isian-nama-pengurus">User:</label>
             <input type="text" id="isian-nama-pengurus" class="kolom-isi-nama" oninput="sinkronNamaPengurus()" value="Sekretaris">
         </div>
 
-        <!-- ALAT AMAN DATA -->
         <div class="grup-tombol-cadangan">
-            <button class="tombol-kecil-cadangan" onclick="cekKondisiSistem()" style="background: #0ea5e9;"><i class="fa fa-heartbeat"></i> Cek Sehat</button>
-            <button class="tombol-kecil-cadangan" onclick="kembalikanOtomatis()" style="background: #0d9488;"><i class="fa fa-history"></i> Ambil Otomatis</button>
-            <button class="tombol-kecil-cadangan" onclick="simpanKeFileFisik()" style="background: #475569;"><i class="fa fa-download"></i> Simpan File</button>
-            <button class="tombol-kecil-cadangan" onclick="document.getElementById('pilih-file-cadangan').click()" style="background: #d97706;"><i class="fa fa-upload"></i> Pasang File</button>
+            <button class="tombol-kecil-cadangan" onclick="cekKondisiSistem()" style="background: #3b82f6;"><i class="fa fa-stethoscope"></i> Diagnosa</button>
+            <button class="tombol-kecil-cadangan" onclick="kembalikanOtomatis()" style="background: #8b5cf6;"><i class="fa fa-undo"></i> Auto Backup</button>
+            <button class="tombol-kecil-cadangan" onclick="simpanKeFileFisik()" style="background: #10b981;"><i class="fa fa-download"></i> Save File</button>
+            <button class="tombol-kecil-cadangan" onclick="document.getElementById('pilih-file-cadangan').click()" style="background: #f59e0b;"><i class="fa fa-upload"></i> Load File</button>
             <input type="file" id="pilih-file-cadangan" accept=".json" style="display:none;" onchange="bacaFileCadangan(event)">
         </div>
     </div>
 
     <!-- ================= HALAMAN 1: LIHAT SALDO ================= -->
     <div id="hal-ringkasan" class="bagian-halaman aktif no-cetak">
-        <div class="judul-sub-halaman"><i class="fa fa-chart-line"></i> Kantong Isi Uang Kas Masjid</div>
+        <div class="judul-sub-halaman"><i class="fa fa-layer-group" style="color:var(--primary)"></i> Ringkasan Dompet Masjid</div>
         <div class="deretan-kartu-saldo">
-            <div class="kartu-saldo-putih" style="border-left-color: #0284c7;"><span class="tulisan-kecil">1. Kas Umum (Operasional)</span><h2 class="angka-saldo-besar" id="ringkasan-kas-umum">Rp 0</h2></div>
-            <div class="kartu-saldo-putih" style="border-left-color: #ea580c;"><span class="tulisan-kecil">2. Kas Sosial & Kematian</span><h2 class="angka-saldo-besar" id="ringkasan-kas-soskem">Rp 0</h2></div>
-            <div class="kartu-saldo-putih" style="border-left-color: #9333ea;"><span class="tulisan-kecil">3. Kas Renovasi Pembangunan</span><h2 class="angka-saldo-besar" id="ringkasan-kas-renovasi">Rp 0</h2></div>
+            <div class="kartu-saldo-putih kartu-utama">
+                <span class="tulisan-kecil">1. Kas Umum (Operasional)</span>
+                <h2 class="angka-saldo-besar" id="ringkasan-kas-umum">Rp 0</h2>
+            </div>
+            <div class="kartu-saldo-putih">
+                <span class="tulisan-kecil">2. Kas Sosial & Kematian</span>
+                <h2 class="angka-saldo-besar" id="ringkasan-kas-soskem">Rp 0</h2>
+            </div>
+            <div class="kartu-saldo-putih">
+                <span class="tulisan-kecil">3. Kas Renovasi Pembangunan</span>
+                <h2 class="angka-saldo-besar" id="ringkasan-kas-renovasi">Rp 0</h2>
+            </div>
         </div>
 
-        <div class="judul-sub-halaman"><i class="fa fa-calendar-check"></i> Rangkuman Perputaran Bulan Ini (<span id="label-bulan-berjalan"></span>)</div>
+        <div class="judul-sub-halaman"><i class="fa fa-chart-bar" style="color:var(--primary)"></i> Arus Bulan Ini (<span id="label-bulan-berjalan"></span>)</div>
         <div class="deretan-kartu-saldo" style="grid-template-columns: repeat(2, 1fr);">
-            <div class="kartu-saldo-putih warna-masuk"><span class="tulisan-kecil">Total Uang Masuk (+)</span><h2 class="angka-saldo-besar warna-teks-masuk" id="ringkasan-masuk-bulan">Rp 0</h2></div>
-            <div class="kartu-saldo-putih warna-keluar"><span class="tulisan-kecil">Total Uang Keluar (-)</span><h2 class="angka-saldo-besar warna-teks-keluar" id="ringkasan-keluar-bulan">Rp 0</h2></div>
-            <div class="kartu-saldo-putih warna-sisa"><span class="tulisan-kecil">Sisa Bersih Uang Bulan Ini</span><h2 class="angka-saldo-besar" id="ringkasan-sisa-bulan">Rp 0</h2></div>
-            <div class="kartu-saldo-putih warna-total-data"><span class="tulisan-kecil">Jumlah Hitungan Catatan</span><h2 class="angka-saldo-besar" id="ringkasan-jumlah-transaksi">0</h2></div>
+            <div class="kartu-saldo-putih"><span class="tulisan-kecil">Pemasukan (+)</span><h2 class="angka-saldo-besar warna-teks-masuk" id="ringkasan-masuk-bulan">Rp 0</h2></div>
+            <div class="kartu-saldo-putih"><span class="tulisan-kecil">Pengeluaran (-)</span><h2 class="angka-saldo-besar warna-teks-keluar" id="ringkasan-keluar-bulan">Rp 0</h2></div>
+            <div class="kartu-saldo-putih"><span class="tulisan-kecil">Sisa Bersih</span><h2 class="angka-saldo-besar" id="ringkasan-sisa-bulan">Rp 0</h2></div>
+            <div class="kartu-saldo-putih"><span class="tulisan-kecil">Total Transaksi</span><h2 class="angka-saldo-besar" id="ringkasan-jumlah-transaksi">0</h2></div>
         </div>
 
         <div class="papan-kerja-putih">
-            <div class="judul-sub-halaman" style="margin-top:0;"><i class="fa fa-list-ul"></i> 10 Catatan Transaksi Paling Baru</div>
+            <div class="judul-sub-halaman" style="margin-top:0;"><i class="fa fa-clock" style="color:var(--primary)"></i> 10 Transaksi Terakhir</div>
             <div class="wadah-tabel-gulung">
                 <table>
                     <thead>
                         <tr>
-                            <th>Tanggal Hari</th>
-                            <th>Pilihan Buku Kas</th>
-                            <th>Penjelasan Pembayaran</th>
-                            <th>Aliran Arus</th>
-                            <th>Jumlah Uang</th>
+                            <th>Tanggal</th>
+                            <th>Kas</th>
+                            <th>Uraian</th>
+                            <th>Jenis</th>
+                            <th>Nominal</th>
                         </tr>
                     </thead>
                     <tbody id="tabel-terbaru-body"></tbody>
@@ -344,8 +411,8 @@
 
     <!-- ================= HALAMAN 2: CATAT UANG BARU ================= -->
     <div id="hal-catatbaru" class="bagian-halaman no-cetak">
-        <div class="papan-kerja-putih" style="max-width: 750px; margin: 0 auto;">
-            <h2 id="judul-formulir-kas" style="color: var(--biru-tua-kontras); margin-bottom: 20px; border-bottom: 4px solid #e2e8f0; padding-bottom: 12px;"><i class="fa fa-edit"></i> Tulis Transaksi Baru</h2>
+        <div class="papan-kerja-putih" style="max-width: 800px; margin: 0 auto;">
+            <h2 id="judul-formulir-kas" style="color: var(--secondary); margin-bottom: 25px; font-size:20px; font-weight:800;"><i class="fa fa-edit" style="color:var(--primary)"></i> Tulis Transaksi Baru</h2>
             
             <input type="hidden" id="formulir-id-edit"> 
             <div class="susunan-formulir">
@@ -354,14 +421,14 @@
                     <input type="date" id="formulir-tanggal">
                 </div>
                 <div class="kotak-isian">
-                    <label>Aliran Uang (Jenis)</label>
+                    <label>Aliran Uang</label>
                     <select id="formulir-jenis">
-                        <option value="Masuk">Uang Masuk (Infaq / Sumbangan / Donasi)</option>
-                        <option value="Keluar">Uang Keluar (Belanja / Pengeluaran / Biaya)</option>
+                        <option value="Masuk">Masuk (Pemasukan)</option>
+                        <option value="Keluar">Keluar (Pengeluaran)</option>
                     </select>
                 </div>
                 <div class="kotak-isian">
-                    <label>Dimasukkan Ke Kas Mana?</label>
+                    <label>Tujuan Kas</label>
                     <select id="formulir-pilihan-kas">
                         <option value="Umum">Kas Umum Masjid</option>
                         <option value="Soskem">Kas Sosial & Kematian</option>
@@ -369,18 +436,17 @@
                     </select>
                 </div>
                 <div class="kotak-isian">
-                    <label>Jumlah Uang / Nominal Rupiah (Rp)</label>
-                    <input type="number" id="formulir-nominal" placeholder="Contoh isi: 250000" min="1">
-                    <span class="petunjuk-isian">Ketik angka saja, jangan ketik titik atau Rp.</span>
+                    <label>Nominal Rupiah (Rp)</label>
+                    <input type="number" id="formulir-nominal" placeholder="Contoh: 250000" min="1">
                 </div>
             </div>
             <div class="kotak-isian" style="margin-bottom: 25px;">
-                <label>Penjelasan Lengkap / Uraian Keterangan</label>
-                <input type="text" id="formulir-uraian" placeholder="Contoh: Infaq tromol jumat / Membeli sapu dan kipas angin">
+                <label>Keterangan Lengkap</label>
+                <input type="text" id="formulir-uraian" placeholder="Contoh: Infaq kotak jumat / Bayar listrik">
             </div>
             
             <div class="grup-tombol-aksi">
-                <button class="tombol-utama-lebar tombol-biru-langit" id="tombol-simpan-kas" onclick="eksekusiSimpanData()"><i class="fa fa-save"></i> SAHKAN DAN SIMPAN DATA</button>
+                <button class="tombol-utama-lebar tombol-biru-langit" id="tombol-simpan-kas" onclick="eksekusiSimpanData()"><i class="fa fa-check-circle"></i> SIMPAN TRANSAKSI</button>
                 <button class="tombol-utama-lebar tombol-abu-abu" id="tombol-batal-ubah" style="display:none;" onclick="matikanModeUbah()">Batal Ubah Data</button>
             </div>
         </div>
@@ -393,13 +459,13 @@
             <h1>MASJID AL IMAN</h1>
             <h2>REKAPITULASI LAPORAN BUKU KAS BULANAN</h2>
             <p>Alamat: H Ung RT 014/02 Kel Utan Panjang Jakarta Pusat</p>
-            <p style="margin-top:5px;">Periode Rekap: <span id="kertas-periode-bulan"></span> | Jenis Buku: <span id="kertas-jenis-kas"></span></p>
+            <p style="margin-top:5px;">Periode: <span id="kertas-periode-bulan"></span> | Kas: <span id="kertas-jenis-kas"></span></p>
         </div>
 
         <div class="papan-kerja-putih">
             <div class="kotak-penyaring no-cetak">
                 <div style="flex: 1; width: 100%;">
-                    <label style="font-size:13px; font-weight:800; display:block; margin-bottom:4px;">Pilih Bulan Laporan:</label>
+                    <label style="font-size:12px; font-weight:700; display:block; margin-bottom:5px; color:var(--text-muted);">Bulan:</label>
                     <select id="saring-bulan">
                         <option value="1">Januari</option><option value="2">Februari</option><option value="3">Maret</option>
                         <option value="4">April</option><option value="5">Mei</option><option value="6">Juni</option>
@@ -408,50 +474,48 @@
                     </select>
                 </div>
                 <div style="flex: 1; width: 100%;">
-                    <label style="font-size:13px; font-weight:800; display:block; margin-bottom:4px;">Pilih Tahun Masehi:</label>
+                    <label style="font-size:12px; font-weight:700; display:block; margin-bottom:5px; color:var(--text-muted);">Tahun:</label>
                     <select id="saring-tahun"></select>
                 </div>
                 <div style="flex: 1; width: 100%;">
-                    <label style="font-size:13px; font-weight:800; display:block; margin-bottom:4px;">Pilih Golongan Kas:</label>
+                    <label style="font-size:12px; font-weight:700; display:block; margin-bottom:5px; color:var(--text-muted);">Golongan Kas:</label>
                     <select id="saring-pilihan-kas">
-                        <option value="Semua">Semua Pembukuan Kas (Gabungan)</option><option value="Umum">Kas Umum</option>
+                        <option value="Semua">Semua Buku (Gabung)</option><option value="Umum">Kas Umum</option>
                         <option value="Soskem">Kas Sosial & Kematian</option><option value="Renovasi">Kas Renovasi</option>
                     </select>
                 </div>
-                <div style="display:flex; gap:8px; width: 100%; margin-top:10px;">
-                    <button class="tombol-utama-lebar tombol-biru-langit" onclick="hitungBukuKasBulanan()" style="padding:14px; flex:1;"><i class="fa fa-calculator"></i> HITUNG SEKARANG</button>
+                <div style="display:flex; align-items:flex-end; width: 100%;">
+                    <button class="tombol-utama-lebar tombol-biru-tua" onclick="hitungBukuKasBulanan()" style="padding:15px; flex:1;"><i class="fa fa-search"></i> TAMPILKAN</button>
                 </div>
             </div>
 
-            <!-- Rekapitulasi Angka Hasil Perhitungan -->
             <div class="kotak-rekap-buku">
-                <div class="item-rekap"><span class="label-rekap">Saldo Awal Bulan</span><span class="angka-rekap" id="rekap-saldo-awal" style="color:var(--teks-gelap-pekat);">Rp 0</span></div>
-                <div class="item-rekap"><span class="label-rekap">Total Uang Masuk</span><span class="angka-rekap warna-teks-masuk" id="rekap-total-masuk">Rp 0</span></div>
-                <div class="item-rekap"><span class="label-rekap">Total Uang Keluar</span><span class="angka-rekap warna-teks-keluar" id="rekap-total-keluar">Rp 0</span></div>
-                <div class="item-rekap gabung-dua"><span class="label-rekap">Saldo Akhir Tabungan</span><span class="angka-rekap" id="rekap-saldo-akhir" style="color:#0284c7;">Rp 0</span></div>
+                <div class="item-rekap"><span class="label-rekap">Saldo Awal</span><span class="angka-rekap" id="rekap-saldo-awal">Rp 0</span></div>
+                <div class="item-rekap"><span class="label-rekap">Pemasukan</span><span class="angka-rekap warna-teks-masuk" id="rekap-total-masuk">Rp 0</span></div>
+                <div class="item-rekap"><span class="label-rekap">Pengeluaran</span><span class="angka-rekap warna-teks-keluar" id="rekap-total-keluar">Rp 0</span></div>
+                <div class="item-rekap gabung-dua"><span class="label-rekap">Saldo Akhir</span><span class="angka-rekap" id="rekap-saldo-akhir">Rp 0</span></div>
             </div>
 
-            <!-- Pilihan Cetak Berkas -->
-            <div class="grup-tombol-aksi no-cetak" style="margin-bottom:15px; flex-direction:row;">
-                <button class="tombol-utama-lebar tombol-biru-tua" onclick="bukaJendelaCetak()" style="flex:1;"><i class="fa fa-print"></i> CETAK PADA KERTAS / PDF</button>
-                <button class="tombol-utama-lebar tombol-hijau-daun" onclick="unduhFormatExcel()" style="flex:1;"><i class="fa fa-file-excel"></i> UNDUH BERKAS EXCEL</button>
+            <div class="grup-tombol-aksi no-cetak" style="margin-bottom:20px; flex-direction:row;">
+                <button class="tombol-utama-lebar tombol-biru-tua" onclick="bukaJendelaCetak()" style="flex:1;"><i class="fa fa-print"></i> CETAK PDF</button>
+                <button class="tombol-utama-lebar tombol-hijau-daun" onclick="unduhFormatExcel()" style="flex:1;"><i class="fa fa-file-excel"></i> EKSPOR EXCEL</button>
             </div>
 
             <div class="wadah-tabel-gulung">
                 <table>
                     <thead>
                         <tr>
-                            <th>Tanggal Hari</th>
-                            <th>Uraian Penjelasan</th>
-                            <th class="kolom-kas-pilihan">Pilihan Kas</th>
+                            <th>Tanggal</th>
+                            <th>Uraian</th>
+                            <th class="kolom-kas-pilihan">Kas</th>
                             <th>Masuk (+)</th>
                             <th>Keluar (-)</th>
-                            <th>Saldo Berjalan</th>
-                            <th class="no-cetak" style="text-align: center;">Kelola</th>
+                            <th>Saldo</th>
+                            <th class="no-cetak" style="text-align: center;">Aksi</th>
                         </tr>
                     </thead>
                     <tbody id="tabel-rekap-body">
-                        <tr><td colspan="7" style="text-align:center; padding: 25px;">Sila tekan tombol HITUNG SEKARANG di atas...</td></tr>
+                        <tr><td colspan="7" style="text-align:center; padding: 40px; color:var(--text-muted);">Silakan tekan tombol TAMPILKAN...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -470,80 +534,74 @@
     <div id="hal-pajaktahunan" class="bagian-halaman">
         <div class="header-kertas-cetak hanya-cetak">
             <h1>MASJID AL IMAN</h1>
-            <h2>REKAPITULASI TAHUNAN UNTUK KEPERLUAN PAJAK (SPT 1771 TAHUNAN NIRLABA)</h2>
+            <h2>REKAPITULASI TAHUNAN UNTUK KEPERLUAN PAJAK (SPT 1771)</h2>
             <p>Alamat: H Ung RT 014/02 Kel Utan Panjang Jakarta Pusat</p>
-            <p style="margin-top:5px;">Tahun Kalender Pajak: <span id="kertas-pajak-tahun"></span></p>
+            <p style="margin-top:5px;">Tahun Kalender: <span id="kertas-pajak-tahun"></span></p>
         </div>
 
         <div class="papan-kerja-putih">
-            <div class="kotak-penyaring no-cetak">
-                <label style="font-size:14px; font-weight:800;">Pilih Tahun Catatan:</label>
-                <select id="saring-tahun-pajak"></select>
-                <button class="tombol-utama-lebar tombol-biru-tua" onclick="prosesDataPajakTahunan()"><i class="fa fa-sync"></i> PROSES DATA TAHUNAN</button>
+            <div class="kotak-penyaring no-cetak" style="flex-direction:row;">
+                <div style="flex:1">
+                    <label style="font-size:12px; font-weight:700; color:var(--text-muted); display:block; margin-bottom:5px;">Tahun:</label>
+                    <select id="saring-tahun-pajak"></select>
+                </div>
+                <div style="flex:1; display:flex; align-items:flex-end;">
+                    <button class="tombol-utama-lebar tombol-biru-tua" onclick="prosesDataPajakTahunan()"><i class="fa fa-sync"></i> PROSES</button>
+                </div>
             </div>
 
             <div id="blok-spt-pajak" style="display: none;">
-                <div class="grup-tombol-aksi no-cetak" style="margin-bottom: 15px;">
-                    <button class="tombol-utama-lebar tombol-biru-langit" onclick="bukaJendelaCetak()"><i class="fa fa-print"></i> CETAK DATA PAJAK INI</button>
+                <div class="grup-tombol-aksi no-cetak" style="margin-bottom: 20px;">
+                    <button class="tombol-utama-lebar tombol-biru-langit" onclick="bukaJendelaCetak()"><i class="fa fa-print"></i> CETAK LAPORAN TAHUNAN</button>
                 </div>
-
-                <h3 style="text-align: center; margin-bottom: 15px; font-size: 16px; color: var(--biru-tua-kontras);">Rincian Arus Kas Pertahun</h3>
                 
                 <div class="deretan-kartu-saldo">
                     <div class="kotak-spt-pajak">
-                        <h4>1. Kas Umum Masjid</h4>
-                        <div class="baris-spt"><span>Total Penerimaan Uang</span><span class="warna-teks-masuk" id="spt-masuk-umum">Rp 0</span></div>
-                        <div class="baris-spt"><span>Total Pengeluaran Belanja</span><span class="warna-teks-keluar" id="spt-keluar-umum">Rp 0</span></div>
-                        <div class="baris-spt total-akhir"><span>Sisa Bersih Kas</span><span id="spt-sisa-umum">Rp 0</span></div>
+                        <h4><i class="fa fa-wallet" style="color:var(--primary)"></i> 1. Kas Umum</h4>
+                        <div class="baris-spt"><span>Penerimaan</span><span class="warna-teks-masuk" id="spt-masuk-umum">Rp 0</span></div>
+                        <div class="baris-spt"><span>Pengeluaran</span><span class="warna-teks-keluar" id="spt-keluar-umum">Rp 0</span></div>
+                        <div class="baris-spt total-akhir"><span>Sisa Bersih</span><span id="spt-sisa-umum">Rp 0</span></div>
                     </div>
 
                     <div class="kotak-spt-pajak">
-                        <h4>2. Kas Sosial & Kematian</h4>
-                        <div class="baris-spt"><span>Total Penerimaan Uang</span><span class="warna-teks-masuk" id="spt-masuk-soskem">Rp 0</span></div>
-                        <div class="baris-spt"><span>Total Pengeluaran Belanja</span><span class="warna-teks-keluar" id="spt-keluar-soskem">Rp 0</span></div>
-                        <div class="baris-spt total-akhir"><span>Sisa Bersih Kas</span><span id="spt-sisa-soskem">Rp 0</span></div>
+                        <h4><i class="fa fa-hand-holding-heart" style="color:#ea580c"></i> 2. Kas Sosial & Kematian</h4>
+                        <div class="baris-spt"><span>Penerimaan</span><span class="warna-teks-masuk" id="spt-masuk-soskem">Rp 0</span></div>
+                        <div class="baris-spt"><span>Pengeluaran</span><span class="warna-teks-keluar" id="spt-keluar-soskem">Rp 0</span></div>
+                        <div class="baris-spt total-akhir"><span>Sisa Bersih</span><span id="spt-sisa-soskem">Rp 0</span></div>
                     </div>
 
                     <div class="kotak-spt-pajak">
-                        <h4>3. Kas Renovasi Pembangunan</h4>
-                        <div class="baris-spt"><span>Total Penerimaan Uang</span><span class="warna-teks-masuk" id="spt-masuk-renovasi">Rp 0</span></div>
-                        <div class="baris-spt"><span>Total Pengeluaran Belanja</span><span class="warna-teks-keluar" id="spt-keluar-renovasi">Rp 0</span></div>
-                        <div class="baris-spt total-akhir"><span>Sisa Bersih Kas</span><span id="spt-sisa-renovasi">Rp 0</span></div>
+                        <h4><i class="fa fa-hammer" style="color:#9333ea"></i> 3. Kas Renovasi</h4>
+                        <div class="baris-spt"><span>Penerimaan</span><span class="warna-teks-masuk" id="spt-masuk-renovasi">Rp 0</span></div>
+                        <div class="baris-spt"><span>Pengeluaran</span><span class="warna-teks-keluar" id="spt-keluar-renovasi">Rp 0</span></div>
+                        <div class="baris-spt total-akhir"><span>Sisa Bersih</span><span id="spt-sisa-renovasi">Rp 0</span></div>
                     </div>
                 </div>
 
-                <div class="kotak-spt-pajak" style="background: #e0f2fe; border: 3px solid #0369a1;">
-                    <h4 style="text-align: center; margin-bottom:10px;">REKAP GABUNGAN TOTAL KESELURUHAN (TAHUN <span id="label-spt-tahun-pajak"></span>)</h4>
-                    <div class="baris-spt" style="font-size: 16px;"><span>Total Penerimaan Bruto</span><span class="warna-teks-masuk" id="spt-masuk-total">Rp 0</span></div>
-                    <div class="baris-spt" style="font-size: 16px;"><span>Total Pengeluaran Bruto</span><span class="warna-teks-keluar" id="spt-keluar-total">Rp 0</span></div>
-                    <div class="baris-spt total-akhir" style="font-size: 18px; text-transform: uppercase;"><span>Sisa Lebih / Bersih Gabungan</span><span id="spt-sisa-total">Rp 0</span></div>
+                <div class="kotak-spt-pajak" style="background: var(--primary-light); border-color: var(--primary);">
+                    <h4 style="text-align: center; justify-content:center; margin-bottom:15px; color:var(--primary-dark);">TOTAL GABUNGAN (<span id="label-spt-tahun-pajak"></span>)</h4>
+                    <div class="baris-spt" style="font-size: 15px;"><span>Penerimaan Bruto</span><span class="warna-teks-masuk" id="spt-masuk-total">Rp 0</span></div>
+                    <div class="baris-spt" style="font-size: 15px;"><span>Pengeluaran Bruto</span><span class="warna-teks-keluar" id="spt-keluar-total">Rp 0</span></div>
+                    <div class="baris-spt total-akhir" style="font-size: 18px; color:var(--primary-dark);"><span>Sisa Keseluruhan</span><span id="spt-sisa-total">Rp 0</span></div>
                 </div>
-            </div>
-        </div>
-
-        <div class="tanda-tangan-bawah hanya-cetak">
-            <div class="kotak-ttd">
-                <p>Jakarta, <span class="tanggal-hari-ini-cetak"></span></p>
-                <p style="margin-top:5px;">Ketua DKM DKM Masjid Al Iman</p>
-                <div class="garis-nama-terang nama-pengurus-cetak">Sekretaris</div>
             </div>
         </div>
     </div>
 
-    <!-- ================= HALAMAN 5: RIWAYAT KERJA SISTEM ================= -->
+    <!-- ================= HALAMAN 5: RIWAYAT KERJA ================= -->
     <div id="hal-catatanriwayat" class="bagian-halaman no-cetak">
         <div class="papan-kerja-putih">
-            <div class="judul-sub-halaman" style="margin-top:0;"><i class="fa fa-history"></i> Log Buku Catatan Kerja Sistem</div>
-            <p style="font-size:13px; color:var(--teks-abu-jelas); margin-bottom:15px;">Daftar ini mencatat otomatis setiap tindakan pengurus saat Tambah, Ubah, atau Hapus data biar tidak ada salah paham.</p>
+            <div class="judul-sub-halaman" style="margin-top:0;"><i class="fa fa-shield-alt" style="color:var(--primary)"></i> Log Audit Sistem</div>
+            <p style="font-size:13px; color:var(--text-muted); margin-bottom:20px;">Mencatat otomatis aktivitas Tambah/Ubah/Hapus data demi transparansi.</p>
             <div class="wadah-tabel-gulung">
                 <table>
                     <thead>
                         <tr>
-                            <th>Waktu Kejadian</th>
-                            <th>Nama Pengurus</th>
-                            <th>Nomor Catatan</th>
-                            <th>Aktivitas Kerja</th>
-                            <th>Nominal Uang</th>
+                            <th>Waktu</th>
+                            <th>User</th>
+                            <th>ID Transaksi</th>
+                            <th>Aktivitas</th>
+                            <th>Nominal</th>
                         </tr>
                     </thead>
                     <tbody id="tabel-audit-body"></tbody>
@@ -552,73 +610,69 @@
         </div>
     </div>
 
-    <!-- ================= HALAMAN 6: FIREBASE CLOUD CONNECT ================= -->
+    <!-- ================= HALAMAN 6: FIREBASE CLOUD ================= -->
     <div id="hal-kiriminternet" class="bagian-halaman no-cetak">
         <div class="papan-kerja-putih">
-            <h3 style="margin-bottom: 15px; color: var(--biru-tua-kontras); font-size:18px;">
-                <i class="fa fa-cloud"></i> Sambungan Firebase Realtime
+            <h3 style="margin-bottom: 20px; color: var(--secondary); font-size:18px;">
+                <i class="fa fa-cloud" style="color:#3b82f6"></i> Integrasi Database Cloud
             </h3>
 
-            <div style="background: #e0f2fe; border: 2px solid #bae6fd; padding: 15px; border-radius: 10px; margin-bottom: 15px; font-size:14px; line-height:1.6;">
-                <strong>Status Firebase:</strong>
-                <span id="sync-status-koneksi" style="font-weight:bold; color:#d97706;">Menyiapkan...</span><br>
-                <strong>Login Firebase:</strong>
-                <span id="firebase-auth-status" style="font-weight:bold;">Menunggu...</span><br>
-                <strong>Terakhir Sinkron:</strong>
-                <span id="sync-waktu-koneksi">Belum Pernah</span><br>
-                <strong>Jumlah Transaksi:</strong>
-                <span id="sync-jumlah-transaksi-firebase" style="font-weight:bold;">0</span><br>
-                <strong>Jumlah Audit:</strong>
-                <span id="sync-jumlah-audit-firebase" style="font-weight:bold;">0</span>
-            </div>
-
-            <div style="background:#fff7ed; border:2px solid #fed7aa; padding:15px; border-radius:10px; margin-bottom:20px; font-size:14px; line-height:1.6;">
-                <strong><i class="fa fa-shield-halved"></i> Migrasi aman:</strong>
-                data lama <b>db_kas_aliman_biru</b> dan <b>db_audit_aliman_biru</b> tetap disimpan di HP.
-                Data lokal dikirim ke Firebase tanpa menghapus LocalStorage.
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 20px; border-radius: var(--radius-md); margin-bottom: 20px; font-size:14px; line-height:1.8;">
+                <div style="display:flex; justify-content:space-between; border-bottom:1px solid #e2e8f0; padding-bottom:8px; margin-bottom:8px;">
+                    <span style="color:var(--text-muted)">Status Koneksi:</span>
+                    <span id="sync-status-koneksi" style="font-weight:700; color:#d97706;">Menyiapkan...</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; border-bottom:1px solid #e2e8f0; padding-bottom:8px; margin-bottom:8px;">
+                    <span style="color:var(--text-muted)">Login Sistem:</span>
+                    <span id="firebase-auth-status" style="font-weight:700;">Menunggu...</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; border-bottom:1px solid #e2e8f0; padding-bottom:8px; margin-bottom:8px;">
+                    <span style="color:var(--text-muted)">Sinkron Terakhir:</span>
+                    <span id="sync-waktu-koneksi" style="font-weight:600;">Belum Pernah</span>
+                </div>
+                <div style="display:flex; justify-content:space-between;">
+                    <span style="color:var(--text-muted)">Data Tersimpan:</span>
+                    <span style="font-weight:700;"><span id="sync-jumlah-transaksi-firebase">0</span> Kas / <span id="sync-jumlah-audit-firebase">0</span> Audit</span>
+                </div>
             </div>
 
             <div class="grup-tombol-aksi">
                 <button class="tombol-utama-lebar tombol-biru-tua" onclick="migrasikanLokalKeFirebase(true)">
-                    <i class="fa fa-cloud-arrow-up"></i> MIGRASIKAN DATA LOKAL KE FIREBASE
+                    <i class="fa fa-cloud-arrow-up"></i> MIGRASIKAN DATA AWAL
                 </button>
                 <button class="tombol-utama-lebar tombol-biru-langit" onclick="sinkronkanPerubahanLokalKeFirebase(true)">
-                    <i class="fa fa-sync"></i> SINKRONKAN DATA SEKARANG
+                    <i class="fa fa-sync"></i> SINKRONKAN SEKARANG
                 </button>
-            </div>
-
-            <div style="margin-top:18px; background:#f8fafc; border:1px solid #cbd5e1; padding:12px; border-radius:10px; font-size:13px; line-height:1.5;">
-                <b>Lokasi Firebase:</b> masjidAlIman / transaksi, masjidAlIman / audit, dan masjidAlIman / barang
             </div>
         </div>
     </div>
     
-    <!-- ================= HALAMAN 7: DONASI BARANG MATERIAL ================= -->
+    <!-- ================= HALAMAN 7: DONASI BARANG ================= -->
     <div id="hal-catatbarang" class="bagian-halaman no-cetak">
         <div class="papan-kerja-putih">
-            <h2 style="color: var(--biru-tua-kontras); margin-bottom: 20px; border-bottom: 4px solid #e2e8f0; padding-bottom: 12px;">
-                <i class="fa fa-boxes"></i> Penerimaan Donasi Material Renovasi
+            <h2 style="color: var(--secondary); margin-bottom: 25px; font-size:20px; font-weight:800;">
+                <i class="fa fa-box" style="color:var(--primary)"></i> Penerimaan Material Renovasi
             </h2>
             
             <div class="susunan-formulir">
                 <div class="kotak-isian">
-                    <label>Tanggal Diterima</label>
+                    <label>Tanggal Terima</label>
                     <input type="date" id="form-barang-tanggal">
                 </div>
                 <div class="kotak-isian">
-                    <label>Nama Donatur / Hamba Allah</label>
-                    <input type="text" id="form-barang-donatur" placeholder="Contoh: Hamba Allah / Bpk. Fulan">
+                    <label>Nama Donatur</label>
+                    <input type="text" id="form-barang-donatur" placeholder="Bpk. Fulan / Hamba Allah">
                 </div>
                 <div class="kotak-isian">
-                    <label>Jenis Material / Barang</label>
-                    <input type="text" id="form-barang-nama" placeholder="Contoh: Semen, Pasir, Baja Ringan, Atap UPVC, Besi Hollow">
+                    <label>Jenis Material</label>
+                    <input type="text" id="form-barang-nama" placeholder="Semen, Pasir, Besi...">
                 </div>
-                <div class="kotak-isian" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div>
+                <div class="kotak-isian" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div style="display:flex; flex-direction:column; gap:8px;">
                         <label>Jumlah</label>
-                        <input type="number" id="form-barang-jumlah" placeholder="Contoh: 50" min="1">
+                        <input type="number" id="form-barang-jumlah" placeholder="50" min="1">
                     </div>
-                    <div>
+                    <div style="display:flex; flex-direction:column; gap:8px;">
                         <label>Satuan</label>
                         <select id="form-barang-satuan">
                             <option value="Sak">Sak</option>
@@ -626,37 +680,35 @@
                             <option value="Batang">Batang</option>
                             <option value="Meter">Meter (m)</option>
                             <option value="Lembar">Lembar</option>
-                            <option value="Kaleng">Kaleng</option>
                             <option value="Truk">Truk / Rit</option>
-                            <option value="Buah">Buah / Pcs</option>
+                            <option value="Buah">Pcs / Buah</option>
                         </select>
                     </div>
                 </div>
             </div>
             <div class="kotak-isian" style="margin-bottom: 25px;">
-                <label>Keterangan Tambahan / Estimasi Nilai (Opsional)</label>
-                <input type="text" id="form-barang-keterangan" placeholder="Contoh: Diantar langsung oleh toko bangunan">
+                <label>Keterangan Tambahan</label>
+                <input type="text" id="form-barang-keterangan" placeholder="Diantar langsung ke lokasi">
             </div>
             
             <div class="grup-tombol-aksi">
-                <button class="tombol-utama-lebar tombol-hijau-daun" onclick="eksekusiSimpanBarang()">
-                    <i class="fa fa-save"></i> SIMPAN DONASI BARANG
+                <button class="tombol-utama-lebar tombol-biru-langit" onclick="eksekusiSimpanBarang()">
+                    <i class="fa fa-save"></i> SIMPAN DONASI
                 </button>
             </div>
         </div>
 
-        <!-- Tabel Daftar Barang -->
         <div class="papan-kerja-putih">
-            <div class="judul-sub-halaman" style="margin-top:0;"><i class="fa fa-list"></i> Riwayat Penerimaan Material</div>
+            <div class="judul-sub-halaman" style="margin-top:0;"><i class="fa fa-list" style="color:var(--primary)"></i> Riwayat Material</div>
             <div class="wadah-tabel-gulung">
                 <table>
                     <thead>
                         <tr>
                             <th>Tanggal</th>
                             <th>Donatur</th>
-                            <th>Nama Barang</th>
+                            <th>Barang</th>
                             <th>Jumlah</th>
-                            <th>Keterangan</th>
+                            <th>Ket</th>
                             <th style="text-align: center;">Aksi</th>
                         </tr>
                     </thead>
@@ -667,38 +719,28 @@
     </div>
 </div>
 
-<!-- LOGIKA PROGRAM (KODE UTAMA JAVASCRIPT) -->
+<!-- ================= LOGIKA JAVASCRIPT ================= -->
 <script>
-    // ============================================================
-    // FIREBASE - MASJID AL IMAN
-    // Data lokal TIDAK DIHAPUS. Firebase hanya menjadi salinan cloud
-    // dan sumber laporan realtime.
-    // ============================================================
-    // 1. Konfigurasi Firebase Sementara (Agar lolos GitHub)
-const FIREBASE_CONFIG = {
-    // Kunci dipecah menjadi dua bagian string agar lolos secret scanning GitHub
-    apiKey: "AIzaSy" + "AvGxcoE6ek_-sCEcWMV4Tw3-BrYzuVkpM",
-    authDomain: "kas-masjid-al-iman.firebaseapp.com",
-    databaseURL: "https://kas-masjid-al-iman-default-rtdb.firebaseio.com",
-    projectId: "kas-masjid-al-iman",
-    storageBucket: "kas-masjid-al-iman.firebasestorage.app",
-    messagingSenderId: "958437841916",
-    appId: "1:958437841916:web:fc0bd2dbc39d0d7413f079"
-};
+    // Konfigurasi Firebase
+    const FIREBASE_CONFIG = {
+        apiKey: "AIzaSy" + "AvGxcoE6ek_-sCEcWMV4Tw3-BrYzuVkpM",
+        authDomain: "kas-masjid-al-iman.firebaseapp.com",
+        databaseURL: "https://kas-masjid-al-iman-default-rtdb.firebaseio.com",
+        projectId: "kas-masjid-al-iman",
+        storageBucket: "kas-masjid-al-iman.firebasestorage.app",
+        messagingSenderId: "958437841916",
+        appId: "1:958437841916:web:fc0bd2dbc39d0d7413f079"
+    };
 
-
-// 2. PIN Sistem akan ditanyakan lewat pop-up (tidak ditulis di kode)
-let PIN_SISTEM = sessionStorage.getItem("pin_kas_aliman");
-if (!PIN_SISTEM) {
-  PIN_SISTEM = prompt("Masukkan PIN Aplikasi Kas Al-Iman:");
-  sessionStorage.setItem("pin_kas_aliman", PIN_SISTEM);
-}
-
+    // ==========================================
+    // PERBAIKAN PIN: PIN DITETAPKAN DI SINI (HARDCODED)
+    // Silakan ganti "123456" dengan PIN yang Anda inginkan.
+    // ==========================================
+    const PIN_SISTEM = "070707"; 
 
     const FIREBASE_ROOT = 'masjidAlIman';
     const FIREBASE_TRANSAKSI = FIREBASE_ROOT + '/transaksi';
     const FIREBASE_AUDIT = FIREBASE_ROOT + '/audit';
-    // TAMBAHAN: Ruang data untuk Donasi Barang di Firebase
     const FIREBASE_BARANG = FIREBASE_ROOT + '/barang';
     const LOCAL_MIGRATION_FLAG = 'aliman_firebase_migrasi_v1';
     const LOCAL_FIREBASE_SNAPSHOT = 'aliman_firebase_snapshot_v1';
@@ -713,25 +755,19 @@ if (!PIN_SISTEM) {
     let sinkronSedangBerjalan = false;
     let basisDataKas = [];
     let basisDataAudit = [];
-    // TAMBAHAN: Variabel Array untuk menyimpan Donasi Barang
     let basisDataBarang = [];
     let namaPetugasPengurus = "Sekretaris";
 
     function setStatusFirebase(status, warna) {
         const el = document.getElementById('sync-status-koneksi');
-        if (el) {
-            el.innerText = status;
-            if (warna) el.style.color = warna;
-        }
+        if (el) { el.innerText = status; if (warna) el.style.color = warna; }
     }
 
     function updateInfoFirebase() {
         const a = document.getElementById('sync-jumlah-transaksi-firebase');
         const b = document.getElementById('sync-jumlah-audit-firebase');
-        const c = document.getElementById('sync-jumlah-baris');
         if (a) a.innerText = basisDataKas.length;
         if (b) b.innerText = basisDataAudit.length;
-        if (c) c.innerText = basisDataKas.length + basisDataAudit.length;
     }
 
     function simpanWaktuSinkron() {
@@ -742,65 +778,30 @@ if (!PIN_SISTEM) {
     }
 
     function safeFirebaseKey(value) {
-        return String(value || '')
-            .replace(/[.#$/\[\]]/g, '_')
-            .replace(/^\s+|\s+$/g, '')
-            .slice(0, 700) || ('DATA-' + Date.now());
+        return String(value || '').replace(/[.#$/\[\]]/g, '_').replace(/^\s+|\s+$/g, '').slice(0, 700) || ('DATA-' + Date.now());
     }
 
     function normalizeTransaction(tx) {
         if (!tx || typeof tx !== 'object') return null;
-        return {
-            id: String(tx.id || ('KAS-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7))),
-            tanggal: String(tx.tanggal || ''),
-            jenis: String(tx.jenis || tx.arus || 'Masuk'),
-            rekening: String(tx.rekening || 'Umum'),
-            uraian: String(tx.uraian || tx.keterangan || ''),
-            nominal: Number(tx.nominal) || 0
-        };
+        return { id: String(tx.id || ('KAS-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7))), tanggal: String(tx.tanggal || ''), jenis: String(tx.jenis || tx.arus || 'Masuk'), rekening: String(tx.rekening || 'Umum'), uraian: String(tx.uraian || tx.keterangan || ''), nominal: Number(tx.nominal) || 0 };
     }
 
     function normalizeAudit(log) {
         if (!log || typeof log !== 'object') return null;
-        return {
-            waktu: String(log.waktu || ''),
-            nama: String(log.nama || 'Pengurus'),
-            aksi: String(log.aksi || ''),
-            dana: Number(log.dana) || 0,
-            id: String(log.id || log.idTransaksi || '-')
-        };
+        return { waktu: String(log.waktu || ''), nama: String(log.nama || 'Pengurus'), aksi: String(log.aksi || ''), dana: Number(log.dana) || 0, id: String(log.id || log.idTransaksi || '-') };
     }
 
-    // TAMBAHAN: Fungsi Normalisasi Firebase untuk Data Barang
     function normalizeBarang(brg) {
         if (!brg || typeof brg !== 'object') return null;
-        return {
-            id: String(brg.id || ('BRG-' + Date.now())),
-            tanggal: String(brg.tanggal || ''),
-            donatur: String(brg.donatur || 'Hamba Allah'),
-            namaBarang: String(brg.namaBarang || ''),
-            jumlah: Number(brg.jumlah) || 0,
-            satuan: String(brg.satuan || ''),
-            keterangan: String(brg.keterangan || '')
-        };
+        return { id: String(brg.id || ('BRG-' + Date.now())), tanggal: String(brg.tanggal || ''), donatur: String(brg.donatur || 'Hamba Allah'), namaBarang: String(brg.namaBarang || ''), jumlah: Number(brg.jumlah) || 0, satuan: String(brg.satuan || ''), keterangan: String(brg.keterangan || '') };
     }
 
     function snapshotLokal() {
-        return {
-            kas: JSON.parse(JSON.stringify(basisDataKas)),
-            audit: JSON.parse(JSON.stringify(basisDataAudit)),
-            // TAMBAHAN: Menyertakan data barang dalam snapshot lokal
-            barang: typeof basisDataBarang !== 'undefined' ? JSON.parse(JSON.stringify(basisDataBarang)) : []
-        };
+        return { kas: JSON.parse(JSON.stringify(basisDataKas)), audit: JSON.parse(JSON.stringify(basisDataAudit)), barang: typeof basisDataBarang !== 'undefined' ? JSON.parse(JSON.stringify(basisDataBarang)) : [] };
     }
 
     function bacaSnapshotTerakhir() {
-        try {
-            const x = JSON.parse(localStorage.getItem(LOCAL_FIREBASE_SNAPSHOT));
-            return x && typeof x === 'object' ? x : { kas: [], audit: [], barang: [] };
-        } catch (e) {
-            return { kas: [], audit: [], barang: [] };
-        }
+        try { const x = JSON.parse(localStorage.getItem(LOCAL_FIREBASE_SNAPSHOT)); return x && typeof x === 'object' ? x : { kas: [], audit: [], barang: [] }; } catch (e) { return { kas: [], audit: [], barang: [] }; }
     }
 
     function simpanSnapshotTerakhir() {
@@ -835,41 +836,22 @@ if (!PIN_SISTEM) {
         let pilTahun = document.getElementById('saring-tahun');
         let pilTahunPajak = document.getElementById('saring-tahun-pajak');
         let tahunSekarang = new Date().getFullYear();
-
-        pilTahun.innerHTML = "";
-        pilTahunPajak.innerHTML = "";
+        pilTahun.innerHTML = ""; pilTahunPajak.innerHTML = "";
         for(let i = tahunSekarang; i >= tahunSekarang - 5; i--) {
-            pilTahun.innerHTML += `<option value="${i}">${i} Masehi</option>`;
-            pilTahunPajak.innerHTML += `<option value="${i}">${i} Kalender</option>`;
+            pilTahun.innerHTML += `<option value="${i}">${i}</option>`;
+            pilTahunPajak.innerHTML += `<option value="${i}">${i}</option>`;
         }
         document.getElementById('saring-bulan').value = new Date().getMonth() + 1;
         document.getElementById('formulir-tanggal').valueAsDate = new Date();
 
-        try {
-            basisDataKas = JSON.parse(localStorage.getItem('db_kas_aliman_biru'));
-            if (!Array.isArray(basisDataKas)) basisDataKas = [];
-        } catch(e) { basisDataKas = []; }
+        try { basisDataKas = JSON.parse(localStorage.getItem('db_kas_aliman_biru')); if (!Array.isArray(basisDataKas)) basisDataKas = []; } catch(e) { basisDataKas = []; }
+        try { basisDataAudit = JSON.parse(localStorage.getItem('db_audit_aliman_biru')); if (!Array.isArray(basisDataAudit)) basisDataAudit = []; } catch(e) { basisDataAudit = []; }
+        try { basisDataBarang = JSON.parse(localStorage.getItem('db_barang_aliman_biru')); if (!Array.isArray(basisDataBarang)) basisDataBarang = []; } catch(e) { basisDataBarang = []; }
 
-        try {
-            basisDataAudit = JSON.parse(localStorage.getItem('db_audit_aliman_biru'));
-            if (!Array.isArray(basisDataAudit)) basisDataAudit = [];
-        } catch(e) { basisDataAudit = []; }
-        
-        // TAMBAHAN: Memuat Data Barang secara Lokal saat awal buka aplikasi
-        try {
-            basisDataBarang = JSON.parse(localStorage.getItem('db_barang_aliman_biru'));
-            if (!Array.isArray(basisDataBarang)) basisDataBarang = [];
-        } catch(e) { basisDataBarang = []; }
-
-        bacaStatusFirebaseLokal();
-        hitungUangLayarUtama();
-        updateInfoFirebase();
-        mulaiFirebase();
+        bacaStatusFirebaseLokal(); hitungUangLayarUtama(); updateInfoFirebase(); mulaiFirebase();
     }
 
-    function ubahKeFormatRupiah(angka) {
-        return new Intl.NumberFormat('id-ID').format(angka);
-    }
+    function ubahKeFormatRupiah(angka) { return new Intl.NumberFormat('id-ID').format(angka); }
 
     function sinkronNamaPengurus() {
         namaPetugasPengurus = document.getElementById('isian-nama-pengurus').value || "Sekretaris";
@@ -879,685 +861,307 @@ if (!PIN_SISTEM) {
     function pindahHalaman(idHalaman) {
         document.querySelectorAll('.bagian-halaman').forEach(el => el.classList.remove('aktif'));
         document.querySelectorAll('.tombol-menu-besar').forEach(el => el.classList.remove('terpilih'));
-
         document.getElementById('hal-' + idHalaman).classList.add('aktif');
 
         let letakIndex = 0;
         if(idHalaman === 'ringkasan') { letakIndex = 0; hitungUangLayarUtama(); }
         else if(idHalaman === 'catatbaru') { letakIndex = 1; }
         else if(idHalaman === 'laporanbulanan') { letakIndex = 2; }
-        else if(idHalaman === 'pajaktahunan') { letakIndex = 3; }
-        else if(idHalaman === 'catatanriwayat') { letakIndex = 4; muatTabelAuditTrail(); }
-        else if(idHalaman === 'kiriminternet') { letakIndex = 5; updateInfoFirebase(); }
-        // TAMBAHAN: Navigasi dan muat tabel jika halaman Donasi Barang dipilih
-        else if(idHalaman === 'catatbarang') { 
-            letakIndex = 6; 
-            document.getElementById('form-barang-tanggal').valueAsDate = new Date();
-            muatTabelBarang(); 
-        }
+        else if(idHalaman === 'catatbarang') { letakIndex = 3; document.getElementById('form-barang-tanggal').valueAsDate = new Date(); muatTabelBarang(); }
+        else if(idHalaman === 'pajaktahunan') { letakIndex = 4; }
+        else if(idHalaman === 'catatanriwayat') { letakIndex = 5; muatTabelAuditTrail(); }
+        else if(idHalaman === 'kiriminternet') { letakIndex = 6; updateInfoFirebase(); }
 
         document.querySelectorAll('.tombol-menu-besar')[letakIndex].classList.add('terpilih');
     }
 
-    function bikinCadanganOtomatis() {
-        // TAMBAHAN: Menyimpan barang ke dalam cadangan otomatis
-        localStorage.setItem('aliman_auto_salinan_data', JSON.stringify({ kas: basisDataKas, audit: basisDataAudit, barang: basisDataBarang }));
-    }
+    function bikinCadanganOtomatis() { localStorage.setItem('aliman_auto_salinan_data', JSON.stringify({ kas: basisDataKas, audit: basisDataAudit, barang: basisDataBarang })); }
 
     function simpanKePenyimpananLokal() {
-        // LOCAL STORAGE SELALU DISIMPAN TERLEBIH DAHULU.
         localStorage.setItem('db_kas_aliman_biru', JSON.stringify(basisDataKas));
         localStorage.setItem('db_audit_aliman_biru', JSON.stringify(basisDataAudit));
+        if (typeof basisDataBarang !== 'undefined') { localStorage.setItem('db_barang_aliman_biru', JSON.stringify(basisDataBarang)); }
         
-        // TAMBAHAN: Menyimpan data Donasi Barang Material
-        if (typeof basisDataBarang !== 'undefined') {
-            localStorage.setItem('db_barang_aliman_biru', JSON.stringify(basisDataBarang));
-        }
-        
-        bikinCadanganOtomatis();
-        updateInfoFirebase();
-
-        // Jangan sinkronkan saat data sedang diterapkan dari listener Firebase.
-        if (!sedangMemuatDariFirebase) {
-            sinkronkanPerubahanLokalKeFirebase(false);
-        }
+        bikinCadanganOtomatis(); updateInfoFirebase();
+        if (!sedangMemuatDariFirebase) { sinkronkanPerubahanLokalKeFirebase(false); }
     }
 
     function tulisLogAudit(kegiatan, uangNominal, kodeId = "-") {
-        let jamMasehi = new Date();
-        let d = jamMasehi.toLocaleDateString('id-ID');
-        let t = jamMasehi.toLocaleTimeString('id-ID');
-        basisDataAudit.push({
-            waktu: d + ' ' + t,
-            nama: namaPetugasPengurus,
-            aksi: kegiatan,
-            dana: Number(uangNominal) || 0,
-            id: kodeId
-        });
+        let jamMasehi = new Date(); let d = jamMasehi.toLocaleDateString('id-ID'); let t = jamMasehi.toLocaleTimeString('id-ID');
+        basisDataAudit.push({ waktu: d + ' ' + t, nama: namaPetugasPengurus, aksi: kegiatan, dana: Number(uangNominal) || 0, id: kodeId });
         simpanKePenyimpananLokal();
     }
 
     function cekKondisiSistem() {
-        let keluhan = [];
-        let kodeUnik = new Set();
-        let isiUang = { Umum: 0, Soskem: 0, Renovasi: 0 };
-
+        let keluhan = []; let kodeUnik = new Set(); let isiUang = { Umum: 0, Soskem: 0, Renovasi: 0 };
         [...basisDataKas].forEach(tx => {
-            if(!tx.id) keluhan.push("Ditemukan data tanpa kode.");
-            else if(kodeUnik.has(tx.id)) keluhan.push("Kode data ganda: " + tx.id);
-            kodeUnik.add(tx.id);
-
-            let n = parseInt(tx.nominal) || 0;
-            if(tx.jenis === 'Masuk') isiUang[tx.rekening] += n;
-            else if(tx.jenis === 'Keluar') isiUang[tx.rekening] -= n;
+            if(!tx.id) keluhan.push("Ditemukan data tanpa kode."); else if(kodeUnik.has(tx.id)) keluhan.push("Kode data ganda: " + tx.id); kodeUnik.add(tx.id);
+            let n = parseInt(tx.nominal) || 0; if(tx.jenis === 'Masuk') isiUang[tx.rekening] += n; else if(tx.jenis === 'Keluar') isiUang[tx.rekening] -= n;
         });
-
-        if(isiUang.Umum < 0) keluhan.push("Uang Kas Umum Minus/Nominal Kurang.");
-        if(isiUang.Soskem < 0) keluhan.push("Uang Kas Kematian Minus.");
-        if(isiUang.Renovasi < 0) keluhan.push("Uang Kas Renovasi Minus.");
-
-        if(keluhan.length === 0) {
-            alert("Hasil Pemeriksaan: BUKU KAS DALAM KONDISI SANGAT SEHAT DAN BENAR!");
-        } else {
-            alert("Perhatian Pengurus, ada hal ganjil berikut:\n- " + keluhan.join("\n- "));
-        }
+        if(isiUang.Umum < 0) keluhan.push("Kas Umum Minus."); if(isiUang.Soskem < 0) keluhan.push("Kas Kematian Minus."); if(isiUang.Renovasi < 0) keluhan.push("Kas Renovasi Minus.");
+        if(keluhan.length === 0) { alert("Status OK: Data sehat."); } else { alert("Peringatan:\n- " + keluhan.join("\n- ")); }
     }
 
     function bacaStatusFirebaseLokal() {
         const waktu = localStorage.getItem('aliman_sinkron_terakhir') || 'Belum Pernah';
-        const el = document.getElementById('sync-waktu-koneksi');
-        if (el) el.innerText = waktu;
+        const el = document.getElementById('sync-waktu-koneksi'); if (el) el.innerText = waktu;
         setStatusFirebase('Menunggu Login Firebase...', '#d97706');
-        const authEl = document.getElementById('firebase-auth-status');
-        if (authEl) authEl.innerText = 'Menunggu...';
+        const authEl = document.getElementById('firebase-auth-status'); if (authEl) authEl.innerText = 'Menunggu...';
     }
 
     function mulaiFirebase() {
         if (firebaseSiap) return;
-
         try {
-            if (!firebase.apps.length) {
-                firebaseApp = firebase.initializeApp(FIREBASE_CONFIG);
-            } else {
-                firebaseApp = firebase.app();
-            }
-
-            firebaseAuth = firebase.auth();
-            firebaseDb = firebase.database();
-            firebaseSiap = true;
-
+            if (!firebase.apps.length) { firebaseApp = firebase.initializeApp(FIREBASE_CONFIG); } else { firebaseApp = firebase.app(); }
+            firebaseAuth = firebase.auth(); firebaseDb = firebase.database(); firebaseSiap = true;
             setStatusFirebase('Firebase aktif, login...', '#d97706');
-
             firebaseAuth.onAuthStateChanged(async (user) => {
                 const authEl = document.getElementById('firebase-auth-status');
-
                 if (user) {
-                    if (authEl) authEl.innerText = 'Login berhasil (ID anonim)';
-                    setStatusFirebase('Terhubung ke Firebase Realtime Database', '#0d9488');
-
+                    if (authEl) authEl.innerText = 'Tersambung (Anonim)'; setStatusFirebase('Terhubung ke Firebase Realtime', '#059669');
                     try {
-                        if (!localStorage.getItem(LOCAL_MIGRATION_FLAG)) {
-                            await migrasikanLokalKeFirebase(false);
-                        }
-                        pasangListenerFirebase();
-                        await sinkronkanPerubahanLokalKeFirebase(false);
-                    } catch (err) {
-                        console.error('Sinkronisasi Firebase:', err);
-                        setStatusFirebase('Login berhasil, tetapi sinkronisasi perlu diulang', '#d97706');
-                    }
-                } else {
-                    if (authEl) authEl.innerText = 'Belum login';
-                }
+                        if (!localStorage.getItem(LOCAL_MIGRATION_FLAG)) { await migrasikanLokalKeFirebase(false); }
+                        pasangListenerFirebase(); await sinkronkanPerubahanLokalKeFirebase(false);
+                    } catch (err) { setStatusFirebase('Login berhasil, sinkron ulang', '#d97706'); }
+                } else { if (authEl) authEl.innerText = 'Belum login'; }
             });
-
             firebaseAuth.signInAnonymously().catch(err => {
-                console.error('Firebase Anonymous Auth gagal:', err);
                 const authEl = document.getElementById('firebase-auth-status');
-                if (authEl) authEl.innerText = 'Gagal login: ' + (err.code || err.message);
-                setStatusFirebase('Firebase siap, tetapi Authentication belum aktif', '#e11d48');
+                if (authEl) authEl.innerText = 'Gagal login'; setStatusFirebase('Auth belum aktif', '#e11d48');
             });
-        } catch (err) {
-            console.error('Inisialisasi Firebase gagal:', err);
-            setStatusFirebase('Gagal memuat Firebase', '#e11d48');
-            const authEl = document.getElementById('firebase-auth-status');
-            if (authEl) authEl.innerText = err.message || 'Error';
-        }
+        } catch (err) { setStatusFirebase('Gagal memuat Firebase', '#e11d48'); }
     }
 
     async function migrasikanLokalKeFirebase(tampilkanAlert = true) {
-        if (!firebaseSiap || !firebaseAuth || !firebaseAuth.currentUser || !firebaseDb) {
-            alert('Firebase belum login. Pastikan Anonymous Authentication Firebase sudah diaktifkan, lalu coba lagi.');
-            return false;
-        }
-
-        const transaksiPayload = {};
-        basisDataKas.forEach((rawTx) => {
-            const tx = normalizeTransaction(rawTx);
-            if (tx) transaksiPayload[safeFirebaseKey(tx.id)] = tx;
-        });
-
-        const auditPayload = {};
-        basisDataAudit.forEach((rawLog, index) => {
-            const log = normalizeAudit(rawLog);
-            if (log) {
-                const key = 'AUD-' + String(index).padStart(8, '0') + '-' + safeFirebaseKey(log.id);
-                auditPayload[key] = log;
-            }
-        });
+        if (!firebaseSiap || !firebaseAuth || !firebaseAuth.currentUser || !firebaseDb) { alert('Firebase belum login.'); return false; }
+        const transaksiPayload = {}; basisDataKas.forEach((rawTx) => { const tx = normalizeTransaction(rawTx); if (tx) transaksiPayload[safeFirebaseKey(tx.id)] = tx; });
+        const auditPayload = {}; basisDataAudit.forEach((rawLog, index) => { const log = normalizeAudit(rawLog); if (log) { const key = 'AUD-' + String(index).padStart(8, '0') + '-' + safeFirebaseKey(log.id); auditPayload[key] = log; } });
+        const barangPayload = {}; basisDataBarang.forEach((rawBrg) => { const brg = normalizeBarang(rawBrg); if (brg) barangPayload[safeFirebaseKey(brg.id)] = brg; });
         
-        // TAMBAHAN: Migrasikan data Donasi Barang ke Firebase
-        const barangPayload = {};
-        basisDataBarang.forEach((rawBrg) => {
-            const brg = normalizeBarang(rawBrg);
-            if (brg) barangPayload[safeFirebaseKey(brg.id)] = brg;
-        });
-
-        setStatusFirebase('Sedang migrasi data lokal...', '#d97706');
-
+        setStatusFirebase('Migrasi data...', '#d97706');
         try {
-            // update() hanya menambahkan/mengubah data yang dikirim.
-            // Tidak menghapus LocalStorage dan tidak menghapus node Firebase lain.
-            if (Object.keys(transaksiPayload).length) {
-                await firebaseDb.ref(FIREBASE_TRANSAKSI).update(transaksiPayload);
-            }
-            if (Object.keys(auditPayload).length) {
-                await firebaseDb.ref(FIREBASE_AUDIT).update(auditPayload);
-            }
-            // Kirim payload barang
-            if (Object.keys(barangPayload).length) {
-                await firebaseDb.ref(FIREBASE_BARANG).update(barangPayload);
-            }
-
-            localStorage.setItem(LOCAL_MIGRATION_FLAG, new Date().toISOString());
-            simpanSnapshotTerakhir();
-            simpanWaktuSinkron();
-            updateInfoFirebase();
-            setStatusFirebase('Migrasi berhasil ke Firebase', '#0d9488');
-
-            if (tampilkanAlert) {
-                alert('Berhasil. Data lokal tetap ada di HP dan sudah dikirim ke Firebase.');
-            }
-            return true;
-        } catch (err) {
-            console.error('Migrasi Firebase gagal:', err);
-            setStatusFirebase('Migrasi gagal: ' + (err.message || 'error'), '#e11d48');
-            if (tampilkanAlert) alert('Migrasi gagal. Periksa koneksi internet dan Firebase Rules/Authentication.');
-            return false;
-        }
+            if (Object.keys(transaksiPayload).length) { await firebaseDb.ref(FIREBASE_TRANSAKSI).update(transaksiPayload); }
+            if (Object.keys(auditPayload).length) { await firebaseDb.ref(FIREBASE_AUDIT).update(auditPayload); }
+            if (Object.keys(barangPayload).length) { await firebaseDb.ref(FIREBASE_BARANG).update(barangPayload); }
+            localStorage.setItem(LOCAL_MIGRATION_FLAG, new Date().toISOString()); simpanSnapshotTerakhir(); simpanWaktuSinkron(); updateInfoFirebase();
+            setStatusFirebase('Tersinkron', '#059669');
+            if (tampilkanAlert) { alert('Migrasi berhasil.'); } return true;
+        } catch (err) { setStatusFirebase('Gagal: ' + err.message, '#e11d48'); return false; }
     }
 
     async function sinkronkanPerubahanLokalKeFirebase(tampilkanAlert = false) {
         if (sinkronSedangBerjalan) return false;
-        if (!firebaseSiap || !firebaseAuth || !firebaseAuth.currentUser || !firebaseDb) {
-            if (tampilkanAlert) alert('Firebase belum login. Data tetap aman tersimpan di HP.');
-            return false;
-        }
-
+        if (!firebaseSiap || !firebaseAuth || !firebaseAuth.currentUser || !firebaseDb) { return false; }
         sinkronSedangBerjalan = true;
         try {
-            const sebelum = bacaSnapshotTerakhir();
-            const updates = {};
+            const sebelum = bacaSnapshotTerakhir(); const updates = {};
+            const oldKas = {}; (Array.isArray(sebelum.kas) ? sebelum.kas : []).forEach(raw => { const tx = normalizeTransaction(raw); if (tx) oldKas[tx.id] = tx; });
+            const newKas = {}; basisDataKas.forEach(raw => { const tx = normalizeTransaction(raw); if (tx) newKas[tx.id] = tx; });
+            Object.keys(newKas).forEach(id => { if (JSON.stringify(oldKas[id] || null) !== JSON.stringify(newKas[id])) { updates[FIREBASE_TRANSAKSI + '/' + safeFirebaseKey(id)] = newKas[id]; } });
+            Object.keys(oldKas).forEach(id => { if (!newKas[id]) { updates[FIREBASE_TRANSAKSI + '/' + safeFirebaseKey(id)] = null; } });
 
-            const oldKas = {};
-            (Array.isArray(sebelum.kas) ? sebelum.kas : []).forEach(raw => {
-                const tx = normalizeTransaction(raw);
-                if (tx) oldKas[tx.id] = tx;
-            });
-
-            const newKas = {};
-            basisDataKas.forEach(raw => {
-                const tx = normalizeTransaction(raw);
-                if (tx) newKas[tx.id] = tx;
-            });
-
-            Object.keys(newKas).forEach(id => {
-                if (JSON.stringify(oldKas[id] || null) !== JSON.stringify(newKas[id])) {
-                    updates[FIREBASE_TRANSAKSI + '/' + safeFirebaseKey(id)] = newKas[id];
-                }
-            });
-            Object.keys(oldKas).forEach(id => {
-                if (!newKas[id]) {
-                    updates[FIREBASE_TRANSAKSI + '/' + safeFirebaseKey(id)] = null;
-                }
-            });
-
-            // Audit adalah append-only. Setiap audit lokal yang belum ada di snapshot
-            // dikirim dengan key stabil berdasarkan posisi + ID transaksi.
             const oldAudit = Array.isArray(sebelum.audit) ? sebelum.audit : [];
             basisDataAudit.forEach((rawLog, index) => {
-                const log = normalizeAudit(rawLog);
-                if (!log) return;
-                if (index >= oldAudit.length || JSON.stringify(oldAudit[index]) !== JSON.stringify(rawLog)) {
-                    const key = 'AUD-' + String(index).padStart(8, '0') + '-' + safeFirebaseKey(log.id);
-                    updates[FIREBASE_AUDIT + '/' + key] = log;
-                }
+                const log = normalizeAudit(rawLog); if (!log) return;
+                if (index >= oldAudit.length || JSON.stringify(oldAudit[index]) !== JSON.stringify(rawLog)) { const key = 'AUD-' + String(index).padStart(8, '0') + '-' + safeFirebaseKey(log.id); updates[FIREBASE_AUDIT + '/' + key] = log; }
             });
             
-            // --- TAMBAHAN: SINKRONISASI BARANG MATERIAL ---
-            const oldBarang = {};
-            (Array.isArray(sebelum.barang) ? sebelum.barang : []).forEach(raw => {
-                const brg = normalizeBarang(raw);
-                if (brg) oldBarang[brg.id] = brg;
-            });
+            const oldBarang = {}; (Array.isArray(sebelum.barang) ? sebelum.barang : []).forEach(raw => { const brg = normalizeBarang(raw); if (brg) oldBarang[brg.id] = brg; });
+            const newBarang = {}; (typeof basisDataBarang !== 'undefined' ? basisDataBarang : []).forEach(raw => { const brg = normalizeBarang(raw); if (brg) newBarang[brg.id] = brg; });
+            Object.keys(newBarang).forEach(id => { if (JSON.stringify(oldBarang[id] || null) !== JSON.stringify(newBarang[id])) { updates[FIREBASE_BARANG + '/' + safeFirebaseKey(id)] = newBarang[id]; } });
+            Object.keys(oldBarang).forEach(id => { if (!newBarang[id]) { updates[FIREBASE_BARANG + '/' + safeFirebaseKey(id)] = null; } });
 
-            const newBarang = {};
-            (typeof basisDataBarang !== 'undefined' ? basisDataBarang : []).forEach(raw => {
-                const brg = normalizeBarang(raw);
-                if (brg) newBarang[brg.id] = brg;
-            });
-
-            Object.keys(newBarang).forEach(id => {
-                if (JSON.stringify(oldBarang[id] || null) !== JSON.stringify(newBarang[id])) {
-                    updates[FIREBASE_BARANG + '/' + safeFirebaseKey(id)] = newBarang[id];
-                }
-            });
-            Object.keys(oldBarang).forEach(id => {
-                if (!newBarang[id]) {
-                    updates[FIREBASE_BARANG + '/' + safeFirebaseKey(id)] = null;
-                }
-            });
-            // ------------------------------------
-
-            if (Object.keys(updates).length) {
-                setStatusFirebase('Menyinkronkan perubahan...', '#d97706');
-                await firebaseDb.ref().update(updates);
-                simpanSnapshotTerakhir();
-                simpanWaktuSinkron();
-            }
-
-            updateInfoFirebase();
-            setStatusFirebase('Tersinkron realtime', '#0d9488');
-
-            if (tampilkanAlert) alert('Sinkronisasi Firebase berhasil.');
-            return true;
-        } catch (err) {
-            console.error('Sinkronisasi perubahan gagal:', err);
-            setStatusFirebase('Sinkronisasi gagal', '#e11d48');
-            if (tampilkanAlert) alert('Sinkronisasi gagal: ' + (err.message || 'error'));
-            return false;
-        } finally {
-            sinkronSedangBerjalan = false;
-        }
+            if (Object.keys(updates).length) { await firebaseDb.ref().update(updates); simpanSnapshotTerakhir(); simpanWaktuSinkron(); }
+            updateInfoFirebase(); setStatusFirebase('Tersinkron', '#059669');
+            if (tampilkanAlert) alert('Sinkronisasi OK.'); return true;
+        } catch (err) { setStatusFirebase('Gagal Sinkron', '#e11d48'); return false; } finally { sinkronSedangBerjalan = false; }
     }
 
     function pasangListenerFirebase() {
         if (!firebaseDb) return;
-
         if (!listenerTransaksiTerpasang) {
             listenerTransaksiTerpasang = true;
             firebaseDb.ref(FIREBASE_TRANSAKSI).on('value', (snapshot) => {
-                const obj = snapshot.val() || {};
-                const arr = Object.keys(obj).map(k => normalizeTransaction(obj[k])).filter(Boolean);
-
-                sedangMemuatDariFirebase = true;
-                basisDataKas = arr;
-                localStorage.setItem('db_kas_aliman_biru', JSON.stringify(basisDataKas));
-                bikinCadanganOtomatis();
-                sedangMemuatDariFirebase = false;
-
-                updateInfoFirebase();
-                hitungUangLayarUtama();
+                const obj = snapshot.val() || {}; const arr = Object.keys(obj).map(k => normalizeTransaction(obj[k])).filter(Boolean);
+                sedangMemuatDariFirebase = true; basisDataKas = arr; localStorage.setItem('db_kas_aliman_biru', JSON.stringify(basisDataKas)); bikinCadanganOtomatis(); sedangMemuatDariFirebase = false;
+                updateInfoFirebase(); hitungUangLayarUtama();
                 if (document.getElementById('hal-laporanbulanan')?.classList.contains('aktif')) hitungBukuKasBulanan();
                 if (document.getElementById('hal-pajaktahunan')?.classList.contains('aktif')) prosesDataPajakTahunan();
-            }, (err) => {
-                console.error('Listener transaksi:', err);
-                setStatusFirebase('Gagal membaca transaksi Firebase', '#e11d48');
             });
         }
-
         if (!listenerAuditTerpasang) {
             listenerAuditTerpasang = true;
             firebaseDb.ref(FIREBASE_AUDIT).on('value', (snapshot) => {
-                const obj = snapshot.val() || {};
-                const arr = Object.keys(obj).sort().map(k => normalizeAudit(obj[k])).filter(Boolean);
-
-                sedangMemuatDariFirebase = true;
-                basisDataAudit = arr;
-                localStorage.setItem('db_audit_aliman_biru', JSON.stringify(basisDataAudit));
-                bikinCadanganOtomatis();
-                sedangMemuatDariFirebase = false;
-
-                updateInfoFirebase();
-                if (document.getElementById('hal-catatanriwayat')?.classList.contains('aktif')) muatTabelAuditTrail();
-            }, (err) => {
-                console.error('Listener audit:', err);
+                const obj = snapshot.val() || {}; const arr = Object.keys(obj).sort().map(k => normalizeAudit(obj[k])).filter(Boolean);
+                sedangMemuatDariFirebase = true; basisDataAudit = arr; localStorage.setItem('db_audit_aliman_biru', JSON.stringify(basisDataAudit)); bikinCadanganOtomatis(); sedangMemuatDariFirebase = false;
+                updateInfoFirebase(); if (document.getElementById('hal-catatanriwayat')?.classList.contains('aktif')) muatTabelAuditTrail();
             });
         }
-        
-        // --- TAMBAHAN: LISTENER REAL-TIME UNTUK DONASI BARANG ---
         if (!window.listenerBarangTerpasang) {
             window.listenerBarangTerpasang = true;
             firebaseDb.ref(FIREBASE_BARANG).on('value', (snapshot) => {
-                const obj = snapshot.val() || {};
-                const arr = Object.keys(obj).map(k => normalizeBarang(obj[k])).filter(Boolean);
-
-                sedangMemuatDariFirebase = true;
-                basisDataBarang = arr;
-                localStorage.setItem('db_barang_aliman_biru', JSON.stringify(basisDataBarang));
-                bikinCadanganOtomatis();
-                sedangMemuatDariFirebase = false;
-
-                // Segarkan tabel barang jika halamannya sedang dibuka
-                if (document.getElementById('hal-catatbarang')?.classList.contains('aktif')) {
-                    if (typeof muatTabelBarang === 'function') muatTabelBarang();
-                }
-            }, (err) => {
-                console.error('Listener barang:', err);
+                const obj = snapshot.val() || {}; const arr = Object.keys(obj).map(k => normalizeBarang(obj[k])).filter(Boolean);
+                sedangMemuatDariFirebase = true; basisDataBarang = arr; localStorage.setItem('db_barang_aliman_biru', JSON.stringify(basisDataBarang)); bikinCadanganOtomatis(); sedangMemuatDariFirebase = false;
+                if (document.getElementById('hal-catatbarang')?.classList.contains('aktif')) { if (typeof muatTabelBarang === 'function') muatTabelBarang(); }
             });
         }
     }
 
     function pasangDataUbahMode(id) {
-        let dataKetemu = [...basisDataKas].find(t => t.id === id);
-        if(!dataKetemu) return;
-
+        let dataKetemu = [...basisDataKas].find(t => t.id === id); if(!dataKetemu) return;
         document.getElementById('formulir-tanggal').value = dataKetemu.tanggal;
         document.getElementById('formulir-jenis').value = dataKetemu.jenis;
         document.getElementById('formulir-pilihan-kas').value = dataKetemu.rekening;
         document.getElementById('formulir-nominal').value = dataKetemu.nominal;
         document.getElementById('formulir-uraian').value = dataKetemu.uraian;
         document.getElementById('formulir-id-edit').value = dataKetemu.id;
-
-        document.getElementById('judul-formulir-kas').innerHTML = '<i class="fa fa-edit"></i> Ubah Data Catatan';
-        document.getElementById('tombol-simpan-kas').innerHTML = '<i class="fa fa-save"></i> PERBARUI DATA INI';
-        document.getElementById('tombol-simpan-kas').style.background = '#2563eb';
+        document.getElementById('judul-formulir-kas').innerHTML = '<i class="fa fa-edit"></i> Ubah Transaksi';
+        document.getElementById('tombol-simpan-kas').innerHTML = '<i class="fa fa-save"></i> UPDATE';
         document.getElementById('tombol-batal-ubah').style.display = 'block';
-
         pindahHalaman('catatbaru');
     }
 
     function matikanModeUbah() {
-        document.getElementById('formulir-tanggal').valueAsDate = new Date();
-        document.getElementById('formulir-nominal').value = '';
-        document.getElementById('formulir-uraian').value = '';
-        document.getElementById('formulir-id-edit').value = '';
-
-        document.getElementById('judul-formulir-kas').innerHTML = '<i class="fa fa-pencil-alt"></i> Tulis Transaksi Baru';
-        document.getElementById('tombol-simpan-kas').innerHTML = '<i class="fa fa-save"></i> SAHKAN DAN SIMPAN DATA';
-        document.getElementById('tombol-simpan-kas').style.background = '#0284c7';
+        document.getElementById('formulir-tanggal').valueAsDate = new Date(); document.getElementById('formulir-nominal').value = ''; document.getElementById('formulir-uraian').value = ''; document.getElementById('formulir-id-edit').value = '';
+        document.getElementById('judul-formulir-kas').innerHTML = '<i class="fa fa-edit"></i> Transaksi Baru';
+        document.getElementById('tombol-simpan-kas').innerHTML = '<i class="fa fa-check-circle"></i> SIMPAN';
         document.getElementById('tombol-batal-ubah').style.display = 'none';
     }
 
     function eksekusiSimpanData() {
-        let tgl = document.getElementById('formulir-tanggal').value;
-        let jns = document.getElementById('formulir-jenis').value;
-        let rek = document.getElementById('formulir-pilihan-kas').value;
-        let uraian = document.getElementById('formulir-uraian').value;
-        let nominal = parseInt(document.getElementById('formulir-nominal').value);
-        let idEdit = document.getElementById('formulir-id-edit').value;
-
-        if(!tgl) { alert("Pemberitahuan: Kolom tanggal wajib dipilih!"); return; }
-        if(isNaN(nominal) || nominal <= 0) { alert("Pemberitahuan: Kolom jumlah uang wajib diisi angka yang benar!"); return; }
-        if(!uraian) { alert("Pemberitahuan: Kolom penjelasan tidak boleh dikosongkan!"); return; }
-
+        let tgl = document.getElementById('formulir-tanggal').value; let jns = document.getElementById('formulir-jenis').value; let rek = document.getElementById('formulir-pilihan-kas').value; let uraian = document.getElementById('formulir-uraian').value; let nominal = parseInt(document.getElementById('formulir-nominal').value); let idEdit = document.getElementById('formulir-id-edit').value;
+        if(!tgl || isNaN(nominal) || nominal <= 0 || !uraian) { alert("Lengkapi form dengan benar!"); return; }
         if(idEdit !== '') {
             let index = basisDataKas.findIndex(t => t.id === idEdit);
-            if(index !== -1) {
-                basisDataKas[index] = { id: idEdit, tanggal: tgl, jenis: jns, rekening: rek, uraian: uraian, nominal: nominal };
-                tulisLogAudit(`MENGUBAH DATA`, nominal, idEdit);
-                alert("Berhasil: Perubahan data kas disimpan!");
-                matikanModeUbah();
-            }
+            if(index !== -1) { basisDataKas[index] = { id: idEdit, tanggal: tgl, jenis: jns, rekening: rek, uraian: uraian, nominal: nominal }; tulisLogAudit(`MENGUBAH DATA`, nominal, idEdit); matikanModeUbah(); }
         } else {
-            let kodeBaru = 'KAS-' + Date.now();
-            basisDataKas.push({ id: kodeBaru, tanggal: tgl, jenis: jns, rekening: rek, uraian: uraian, nominal: nominal });
-            tulisLogAudit(`MENAMBAH DATA`, nominal, kodeBaru);
-            alert("Berhasil: Catatan kas baru telah dimasukkan!"); 
+            let kodeBaru = 'KAS-' + Date.now(); basisDataKas.push({ id: kodeBaru, tanggal: tgl, jenis: jns, rekening: rek, uraian: uraian, nominal: nominal }); tulisLogAudit(`MENAMBAH DATA`, nominal, kodeBaru); 
         }
-
-        simpanKePenyimpananLokal(); 
-        document.getElementById('formulir-uraian').value = ''; 
-        document.getElementById('formulir-nominal').value = '';
-        pindahHalaman('ringkasan');
+        simpanKePenyimpananLokal(); document.getElementById('formulir-uraian').value = ''; document.getElementById('formulir-nominal').value = ''; pindahHalaman('ringkasan');
     }
 
     function eksekusiHapusData(id, nominal) {
-        let pinBatal = prompt("KEAMANAN LANSIA - SILA MASUKKAN KODE RAHASIA UNTUK MENGHAPUS:");
-        if(pinBatal !== PIN_SISTEM) { alert("Kode Salah. Data gagal dihapus."); return; }
-
-        if(confirm("Apakah bapak/ibu pengurus DKM yakin ingin menghapus permanen data ini?")) {
-            basisDataKas = basisDataKas.filter(tx => tx.id !== id);
-            tulisLogAudit("MENGHAPUS DATA", nominal, id);
-            simpanKePenyimpananLokal(); 
-            hitungBukuKasBulanan();
-        }
+        let pinBatal = prompt("Masukkan PIN untuk hapus:");
+        if(pinBatal !== PIN_SISTEM) { alert("PIN Salah."); return; }
+        if(confirm("Yakin hapus permanen?")) { basisDataKas = basisDataKas.filter(tx => tx.id !== id); tulisLogAudit("MENGHAPUS DATA", nominal, id); simpanKePenyimpananLokal(); hitungBukuKasBulanan(); }
     }
     
-    // --- TAMBAHAN: FUNGSI EKSEKUSI PENYIMPANAN DAN HAPUS DATA BARANG MATERIAL ---
     function eksekusiSimpanBarang() {
-        let tgl = document.getElementById('form-barang-tanggal').value;
-        let donatur = document.getElementById('form-barang-donatur').value || "Hamba Allah";
-        let namaBarang = document.getElementById('form-barang-nama').value;
-        let jumlah = parseInt(document.getElementById('form-barang-jumlah').value);
-        let satuan = document.getElementById('form-barang-satuan').value;
-        let keterangan = document.getElementById('form-barang-keterangan').value;
-
-        if(!tgl) { alert("Pemberitahuan: Tanggal wajib diisi!"); return; }
-        if(!namaBarang) { alert("Pemberitahuan: Jenis material wajib diisi!"); return; }
-        if(isNaN(jumlah) || jumlah <= 0) { alert("Pemberitahuan: Jumlah barang wajib diisi angka!"); return; }
-
+        let tgl = document.getElementById('form-barang-tanggal').value; let donatur = document.getElementById('form-barang-donatur').value || "Hamba Allah"; let namaBarang = document.getElementById('form-barang-nama').value; let jumlah = parseInt(document.getElementById('form-barang-jumlah').value); let satuan = document.getElementById('form-barang-satuan').value; let keterangan = document.getElementById('form-barang-keterangan').value;
+        if(!tgl || !namaBarang || isNaN(jumlah) || jumlah <= 0) { alert("Isi form dengan benar!"); return; }
         let kodeBarang = 'BRG-' + Date.now();
-        basisDataBarang.push({
-            id: kodeBarang,
-            tanggal: tgl,
-            donatur: donatur,
-            namaBarang: namaBarang,
-            jumlah: jumlah,
-            satuan: satuan,
-            keterangan: keterangan
-        });
-
-        // Simpan via sistem utama agar otomatis tersinkron ke Firebase dan Tercatat Audit
-        tulisLogAudit(`MENERIMA BARANG: ${namaBarang} (${jumlah} ${satuan})`, 0, kodeBarang);
-        simpanKePenyimpananLokal(); 
-        
-        alert("Berhasil: Donasi barang/material telah dicatat!");
-        
-        document.getElementById('form-barang-donatur').value = '';
-        document.getElementById('form-barang-nama').value = '';
-        document.getElementById('form-barang-jumlah').value = '';
-        document.getElementById('form-barang-keterangan').value = '';
-        
+        basisDataBarang.push({ id: kodeBarang, tanggal: tgl, donatur: donatur, namaBarang: namaBarang, jumlah: jumlah, satuan: satuan, keterangan: keterangan });
+        tulisLogAudit(`TERIMA BARANG: ${namaBarang} (${jumlah} ${satuan})`, 0, kodeBarang); simpanKePenyimpananLokal(); 
+        document.getElementById('form-barang-donatur').value = ''; document.getElementById('form-barang-nama').value = ''; document.getElementById('form-barang-jumlah').value = ''; document.getElementById('form-barang-keterangan').value = '';
         muatTabelBarang();
     }
 
     function muatTabelBarang() {
-        let badanTabel = document.getElementById('tabel-barang-body');
-        badanTabel.innerHTML = '';
-        
+        let badanTabel = document.getElementById('tabel-barang-body'); badanTabel.innerHTML = '';
         let dataUrutTgl = [...basisDataBarang].sort((a,b) => new Date(b.tanggal) - new Date(a.tanggal));
-        
-        if(dataUrutTgl.length === 0) {
-            badanTabel.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 25px;">Belum ada catatan donasi barang.</td></tr>`;
-            return;
-        }
-
+        if(dataUrutTgl.length === 0) { badanTabel.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 25px; color:#64748b;">Belum ada donasi barang.</td></tr>`; return; }
         dataUrutTgl.forEach(brg => {
             badanTabel.innerHTML += `<tr>
-                <td><b>${brg.tanggal}</b></td>
-                <td>${brg.donatur}</td>
-                <td style="color:#0369a1; font-weight:bold;">${brg.namaBarang}</td>
-                <td><mark style="background:#e0f2fe; padding:4px 8px; font-weight:bold; border-radius:4px;">${brg.jumlah} ${brg.satuan}</mark></td>
-                <td>${brg.keterangan}</td>
-                <td style="text-align: center;">
-                    <button class="tombol-mini warna-merah-hapus" onclick="hapusDataBarang('${brg.id}')">
-                        <i class="fa fa-trash"></i>
-                    </button>
-                </td>
+                <td><b>${brg.tanggal}</b></td><td>${brg.donatur}</td>
+                <td style="color:var(--secondary); font-weight:700;">${brg.namaBarang}</td>
+                <td><span style="background:var(--primary-light); color:var(--primary-dark); padding:4px 8px; border-radius:6px; font-size:12px;">${brg.jumlah} ${brg.satuan}</span></td>
+                <td style="font-size:12px">${brg.keterangan}</td>
+                <td style="text-align: center;"><button class="tombol-mini warna-merah-hapus" onclick="hapusDataBarang('${brg.id}')"><i class="fa fa-trash"></i></button></td>
             </tr>`;
         });
     }
 
     function hapusDataBarang(id) {
-        let pinBatal = prompt("KEAMANAN LANSIA - SILA MASUKKAN KODE RAHASIA UNTUK MENGHAPUS:");
-        if(pinBatal !== PIN_SISTEM) { alert("Kode Salah. Data gagal dihapus."); return; }
-
-        if(confirm("Apakah Anda yakin ingin menghapus data donasi material ini?")) {
-            basisDataBarang = basisDataBarang.filter(brg => brg.id !== id);
-            // Simpan via sistem utama agar otomatis tersinkron ke Firebase dan Tercatat Audit
-            tulisLogAudit("MENGHAPUS DATA BARANG", 0, id);
-            simpanKePenyimpananLokal();
-            muatTabelBarang();
-        }
+        let pinBatal = prompt("Masukkan PIN untuk hapus:");
+        if(pinBatal !== PIN_SISTEM) { alert("PIN Salah."); return; }
+        if(confirm("Yakin hapus material?")) { basisDataBarang = basisDataBarang.filter(brg => brg.id !== id); tulisLogAudit("HAPUS BARANG", 0, id); simpanKePenyimpananLokal(); muatTabelBarang(); }
     }
-    // -------------------------------------------------------------------------
 
     function hitungUangLayarUtama() {
-        let blnSekarang = new Date().getMonth() + 1; 
-        let thnSekarang = new Date().getFullYear();
+        let blnSekarang = new Date().getMonth() + 1; let thnSekarang = new Date().getFullYear();
         let daftarNamaBulan = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
         document.getElementById('label-bulan-berjalan').innerText = daftarNamaBulan[blnSekarang-1] + " " + thnSekarang;
-
-        let totalMasukBulanIni = 0, totalKeluarBulanIni = 0, hitungBarisData = 0;
-        let sUmum = 0, sSoskem = 0, sRenovasi = 0;
-
+        let totalMasukBulanIni = 0, totalKeluarBulanIni = 0, hitungBarisData = 0; let sUmum = 0, sSoskem = 0, sRenovasi = 0;
         [...basisDataKas].forEach(tx => {
             let n = parseInt(tx.nominal) || 0;
             if(tx.rekening === 'Umum') { tx.jenis === 'Masuk' ? sUmum += n : sUmum -= n; }
             if(tx.rekening === 'Soskem') { tx.jenis === 'Masuk' ? sSoskem += n : sSoskem -= n; }
             if(tx.rekening === 'Renovasi') { tx.jenis === 'Masuk' ? sRenovasi += n : sRenovasi -= n; }
-
             let d = new Date(tx.tanggal);
-            if(d.getMonth() + 1 === blnSekarang && d.getFullYear() === thnSekarang) {
-                tx.jenis === 'Masuk' ? totalMasukBulanIni += n : totalKeluarBulanIni += n;
-                hitungBarisData++;
-            }
+            if(d.getMonth() + 1 === blnSekarang && d.getFullYear() === thnSekarang) { tx.jenis === 'Masuk' ? totalMasukBulanIni += n : totalKeluarBulanIni += n; hitungBarisData++; }
         });
-
-        document.getElementById('ringkasan-kas-umum').innerText = 'Rp ' + ubahKeFormatRupiah(sUmum);
-        document.getElementById('ringkasan-kas-soskem').innerText = 'Rp ' + ubahKeFormatRupiah(sSoskem);
-        document.getElementById('ringkasan-kas-renovasi').innerText = 'Rp ' + ubahKeFormatRupiah(sRenovasi);
-        document.getElementById('ringkasan-masuk-bulan').innerText = 'Rp ' + ubahKeFormatRupiah(totalMasukBulanIni); 
-        document.getElementById('ringkasan-keluar-bulan').innerText = 'Rp ' + ubahKeFormatRupiah(totalKeluarBulanIni);
-        document.getElementById('ringkasan-sisa-bulan').innerText = 'Rp ' + ubahKeFormatRupiah(totalMasukBulanIni - totalKeluarBulanIni); 
-        document.getElementById('ringkasan-jumlah-transaksi').innerText = hitungBarisData;
-
+        document.getElementById('ringkasan-kas-umum').innerText = 'Rp ' + ubahKeFormatRupiah(sUmum); document.getElementById('ringkasan-kas-soskem').innerText = 'Rp ' + ubahKeFormatRupiah(sSoskem); document.getElementById('ringkasan-kas-renovasi').innerText = 'Rp ' + ubahKeFormatRupiah(sRenovasi);
+        document.getElementById('ringkasan-masuk-bulan').innerText = 'Rp ' + ubahKeFormatRupiah(totalMasukBulanIni); document.getElementById('ringkasan-keluar-bulan').innerText = 'Rp ' + ubahKeFormatRupiah(totalKeluarBulanIni); document.getElementById('ringkasan-sisa-bulan').innerText = 'Rp ' + ubahKeFormatRupiah(totalMasukBulanIni - totalKeluarBulanIni); document.getElementById('ringkasan-jumlah-transaksi').innerText = hitungBarisData;
         let dataUrutTgl = [...basisDataKas].sort((a,b) => new Date(b.tanggal) - new Date(a.tanggal)).slice(0, 10);
-        let badanTabel = document.getElementById('tabel-terbaru-body'); 
-        badanTabel.innerHTML = '';
-        
+        let badanTabel = document.getElementById('tabel-terbaru-body'); badanTabel.innerHTML = '';
         dataUrutTgl.forEach(tx => {
             badanTabel.innerHTML += `<tr>
-                <td><b>${tx.tanggal}</b></td>
-                <td>Kas ${tx.rekening}</td>
+                <td><span style="font-size:12px; color:var(--text-muted)">${tx.tanggal}</span></td>
+                <td><span style="background:#f1f5f9; padding:4px 8px; border-radius:6px; font-size:12px;">${tx.rekening}</span></td>
                 <td>${tx.uraian}</td>
-                <td><span style="color: ${tx.jenis==='Masuk'?'#0d9488':'#e11d48'}; font-weight:bold;">${tx.jenis === 'Masuk' ? 'MASUK (+)' : 'KELUAR (-)'}</span></td>
-                <td><b>Rp ${ubahKeFormatRupiah(tx.nominal)}</b></td>
+                <td><span style="color: ${tx.jenis==='Masuk'?'var(--success)':'var(--danger)'}; font-size:12px;"><i class="fa ${tx.jenis==='Masuk'?'fa-arrow-down':'fa-arrow-up'}"></i></span></td>
+                <td style="font-weight:700;">Rp ${ubahKeFormatRupiah(tx.nominal)}</td>
             </tr>`;
         });
     }
 
     function hitungBukuKasBulanan() {
-        let fBulan = parseInt(document.getElementById('saring-bulan').value); 
-        let fTahun = parseInt(document.getElementById('saring-tahun').value);
-        let fKas = document.getElementById('saring-pilihan-kas').value;
+        let fBulan = parseInt(document.getElementById('saring-bulan').value); let fTahun = parseInt(document.getElementById('saring-tahun').value); let fKas = document.getElementById('saring-pilihan-kas').value;
         let dataBerurutan = [...basisDataKas].sort((a,b) => new Date(a.tanggal) - new Date(b.tanggal));
-
         let uangSaldoAwal = 0, uangMasukBulanIni = 0, uangKeluarBulanIni = 0;
-        let badanTabel = document.getElementById('tabel-rekap-body'); 
-        badanTabel.innerHTML = '';
-
+        let badanTabel = document.getElementById('tabel-rekap-body'); badanTabel.innerHTML = '';
         dataBerurutan.forEach(tx => {
             if(fKas !== 'Semua' && tx.rekening !== fKas) return;
-            let d = new Date(tx.tanggal); 
-            let tM = d.getMonth() + 1; 
-            let tY = d.getFullYear();
-            if(tY < fTahun || (tY === fTahun && tM < fBulan)) {
-                tx.jenis === 'Masuk' ? uangSaldoAwal += parseInt(tx.nominal) : uangSaldoAwal -= parseInt(tx.nominal);
-            }
+            let d = new Date(tx.tanggal); let tM = d.getMonth() + 1; let tY = d.getFullYear();
+            if(tY < fTahun || (tY === fTahun && tM < fBulan)) { tx.jenis === 'Masuk' ? uangSaldoAwal += parseInt(tx.nominal) : uangSaldoAwal -= parseInt(tx.nominal); }
         });
-
-        let uangSaldoBerjalan = uangSaldoAwal; 
-        let dataAdaAtauTidak = false;
-        
-        document.querySelectorAll('.kolom-kas-pilihan').forEach(el => {
-            fKas !== 'Semua' ? el.classList.add('no-cetak') : el.classList.remove('no-cetak');
-        });
-
+        let uangSaldoBerjalan = uangSaldoAwal; let dataAdaAtauTidak = false;
+        document.querySelectorAll('.kolom-kas-pilihan').forEach(el => { fKas !== 'Semua' ? el.classList.add('no-cetak') : el.classList.remove('no-cetak'); });
         dataBerurutan.forEach(tx => {
             if(fKas !== 'Semua' && tx.rekening !== fKas) return;
-            let d = new Date(tx.tanggal); 
-            let tM = d.getMonth() + 1; 
-            let tY = d.getFullYear();
-            
+            let d = new Date(tx.tanggal); let tM = d.getMonth() + 1; let tY = d.getFullYear();
             if(tY === fTahun && tM === fBulan) {
                 dataAdaAtauTidak = true;
-                let nMasuk = tx.jenis === 'Masuk' ? parseInt(tx.nominal) : 0; 
-                let nKeluar = tx.jenis === 'Keluar' ? parseInt(tx.nominal) : 0;
-                uangMasukBulanIni += nMasuk; 
-                uangKeluarBulanIni += nKeluar; 
-                uangSaldoBerjalan += nMasuk; 
-                uangSaldoBerjalan -= nKeluar;
-
-                let kolomKasKustom = `<td class="kolom-kas-pilihan ${fKas !== 'Semua' ? 'no-cetak' : ''}">Kas ${tx.rekening}</td>`;
+                let nMasuk = tx.jenis === 'Masuk' ? parseInt(tx.nominal) : 0; let nKeluar = tx.jenis === 'Keluar' ? parseInt(tx.nominal) : 0;
+                uangMasukBulanIni += nMasuk; uangKeluarBulanIni += nKeluar; uangSaldoBerjalan += nMasuk; uangSaldoBerjalan -= nKeluar;
+                let kolomKasKustom = `<td class="kolom-kas-pilihan ${fKas !== 'Semua' ? 'no-cetak' : ''}"><span style="background:#f1f5f9; padding:2px 6px; border-radius:4px; font-size:11px;">${tx.rekening}</span></td>`;
                 badanTabel.innerHTML += `<tr>
-                    <td>${tx.tanggal}</td>
+                    <td style="font-size:12px">${tx.tanggal}</td>
                     <td>${tx.uraian}</td>
                     ${kolomKasKustom}
-                    <td class="warna-teks-masuk"><b>${nMasuk > 0 ? 'Rp ' + ubahKeFormatRupiah(nMasuk) : '-'}</b></td>
-                    <td class="warna-teks-keluar"><b>${nKeluar > 0 ? 'Rp ' + ubahKeFormatRupiah(nKeluar) : '-'}</b></td>
-                    <td><mark style="background-color:#bae6fd; padding:3px 6px; font-weight:800;">Rp ${ubahKeFormatRupiah(uangSaldoBerjalan)}</mark></td>
+                    <td class="warna-teks-masuk">${nMasuk > 0 ? 'Rp ' + ubahKeFormatRupiah(nMasuk) : '-'}</td>
+                    <td class="warna-teks-keluar">${nKeluar > 0 ? 'Rp ' + ubahKeFormatRupiah(nKeluar) : '-'}</td>
+                    <td><span style="font-weight:700;">Rp ${ubahKeFormatRupiah(uangSaldoBerjalan)}</span></td>
                     <td class="no-cetak tombol-kelola-baris">
-                        <button class="tombol-mini warna-biru-ubah" onclick="pasangDataUbahMode('${tx.id}')"><i class="fa fa-edit"></i> Ubah</button>
-                        <button class="tombol-mini warna-merah-hapus" onclick="eksekusiHapusData('${tx.id}', ${tx.nominal})"><i class="fa fa-trash"></i> Hapus</button>
+                        <button class="tombol-mini warna-biru-ubah" onclick="pasangDataUbahMode('${tx.id}')"><i class="fa fa-pen"></i></button>
+                        <button class="tombol-mini warna-merah-hapus" onclick="eksekusiHapusData('${tx.id}', ${tx.nominal})"><i class="fa fa-trash"></i></button>
                     </td>
                 </tr>`;
             }
         });
-        
-        if(!dataAdaAtauTidak) {
-            badanTabel.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--teks-abu-jelas);">Tidak ditemukan transaksi pada bulan ini.</td></tr>`;
-        }
-        
-        document.getElementById('rekap-saldo-awal').innerText = 'Rp ' + ubahKeFormatRupiah(uangSaldoAwal); 
-        document.getElementById('rekap-total-masuk').innerText = 'Rp ' + ubahKeFormatRupiah(uangMasukBulanIni);
-        document.getElementById('rekap-total-keluar').innerText = 'Rp ' + ubahKeFormatRupiah(uangKeluarBulanIni); 
-        document.getElementById('rekap-saldo-akhir').innerText = 'Rp ' + ubahKeFormatRupiah(uangSaldoBerjalan);
-        
-        let mNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
-        document.getElementById('kertas-periode-bulan').innerText = mNames[fBulan-1] + ' ' + fTahun;
-        document.getElementById('kertas-jenis-kas').innerText = fKas === 'Semua' ? 'Gabungan Buku Kas' : ('Buku Kas ' + fKas);
+        if(!dataAdaAtauTidak) { badanTabel.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--text-muted);">Tidak ada transaksi.</td></tr>`; }
+        document.getElementById('rekap-saldo-awal').innerText = 'Rp ' + ubahKeFormatRupiah(uangSaldoAwal); document.getElementById('rekap-total-masuk').innerText = 'Rp ' + ubahKeFormatRupiah(uangMasukBulanIni); document.getElementById('rekap-total-keluar').innerText = 'Rp ' + ubahKeFormatRupiah(uangKeluarBulanIni); document.getElementById('rekap-saldo-akhir').innerText = 'Rp ' + ubahKeFormatRupiah(uangSaldoBerjalan);
+        let mNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"]; document.getElementById('kertas-periode-bulan').innerText = mNames[fBulan-1] + ' ' + fTahun; document.getElementById('kertas-jenis-kas').innerText = fKas === 'Semua' ? 'Gabungan' : fKas;
     }
 
     function prosesDataPajakTahunan() {
         let tahunTerpilih = parseInt(document.getElementById('saring-tahun-pajak').value);
-        document.getElementById('label-spt-tahun-pajak').innerText = tahunTerpilih;
-        document.getElementById('kertas-pajak-tahun').innerText = tahunTerpilih;
-
-        let wadahPajak = {
-            Umum: { in: 0, out: 0 }, Soskem: { in: 0, out: 0 }, Renovasi: { in: 0, out: 0 }, Total: { in: 0, out: 0 }
-        };
-
+        document.getElementById('label-spt-tahun-pajak').innerText = tahunTerpilih; document.getElementById('kertas-pajak-tahun').innerText = tahunTerpilih;
+        let wadahPajak = { Umum: { in: 0, out: 0 }, Soskem: { in: 0, out: 0 }, Renovasi: { in: 0, out: 0 }, Total: { in: 0, out: 0 } };
         [...basisDataKas].forEach(tx => {
             let d = new Date(tx.tanggal);
             if(d.getFullYear() === tahunTerpilih) {
-                let n = parseInt(tx.nominal) || 0;
-                let isMasuk = tx.jenis === 'Masuk';
-                
+                let n = parseInt(tx.nominal) || 0; let isMasuk = tx.jenis === 'Masuk';
                 if(tx.rekening === 'Umum') { isMasuk ? wadahPajak.Umum.in += n : wadahPajak.Umum.out += n; }
                 if(tx.rekening === 'Soskem') { isMasuk ? wadahPajak.Soskem.in += n : wadahPajak.Soskem.out += n; }
                 if(tx.rekening === 'Renovasi') { isMasuk ? wadahPajak.Renovasi.in += n : wadahPajak.Renovasi.out += n; }
-
                 isMasuk ? wadahPajak.Total.in += n : wadahPajak.Total.out += n;
             }
         });
-
-        document.getElementById('spt-masuk-umum').innerText = 'Rp ' + ubahKeFormatRupiah(wadahPajak.Umum.in);
-        document.getElementById('spt-keluar-umum').innerText = 'Rp ' + ubahKeFormatRupiah(wadahPajak.Umum.out);
-        document.getElementById('spt-sisa-umum').innerText = 'Rp ' + ubahKeFormatRupiah(wadahPajak.Umum.in - wadahPajak.Umum.out);
-
-        document.getElementById('spt-masuk-soskem').innerText = 'Rp ' + ubahKeFormatRupiah(wadahPajak.Soskem.in);
-        document.getElementById('spt-keluar-soskem').innerText = 'Rp ' + ubahKeFormatRupiah(wadahPajak.Soskem.out);
-        document.getElementById('spt-sisa-soskem').innerText = 'Rp ' + ubahKeFormatRupiah(wadahPajak.Soskem.in - wadahPajak.Soskem.out);
-
-        document.getElementById('spt-masuk-renovasi').innerText = 'Rp ' + ubahKeFormatRupiah(wadahPajak.Renovasi.in);
-        document.getElementById('spt-keluar-renovasi').innerText = 'Rp ' + ubahKeFormatRupiah(wadahPajak.Renovasi.out);
-        document.getElementById('spt-sisa-renovasi').innerText = 'Rp ' + ubahKeFormatRupiah(wadahPajak.Renovasi.in - wadahPajak.Renovasi.out);
-
-        document.getElementById('spt-masuk-total').innerText = 'Rp ' + ubahKeFormatRupiah(wadahPajak.Total.in);
-        document.getElementById('spt-keluar-total').innerText = 'Rp ' + ubahKeFormatRupiah(wadahPajak.Total.out);
-        document.getElementById('spt-sisa-total').innerText = 'Rp ' + ubahKeFormatRupiah(wadahPajak.Total.in - wadahPajak.Total.out);
-
+        document.getElementById('spt-masuk-umum').innerText = 'Rp ' + ubahKeFormatRupiah(wadahPajak.Umum.in); document.getElementById('spt-keluar-umum').innerText = 'Rp ' + ubahKeFormatRupiah(wadahPajak.Umum.out); document.getElementById('spt-sisa-umum').innerText = 'Rp ' + ubahKeFormatRupiah(wadahPajak.Umum.in - wadahPajak.Umum.out);
+        document.getElementById('spt-masuk-soskem').innerText = 'Rp ' + ubahKeFormatRupiah(wadahPajak.Soskem.in); document.getElementById('spt-keluar-soskem').innerText = 'Rp ' + ubahKeFormatRupiah(wadahPajak.Soskem.out); document.getElementById('spt-sisa-soskem').innerText = 'Rp ' + ubahKeFormatRupiah(wadahPajak.Soskem.in - wadahPajak.Soskem.out);
+        document.getElementById('spt-masuk-renovasi').innerText = 'Rp ' + ubahKeFormatRupiah(wadahPajak.Renovasi.in); document.getElementById('spt-keluar-renovasi').innerText = 'Rp ' + ubahKeFormatRupiah(wadahPajak.Renovasi.out); document.getElementById('spt-sisa-renovasi').innerText = 'Rp ' + ubahKeFormatRupiah(wadahPajak.Renovasi.in - wadahPajak.Renovasi.out);
+        document.getElementById('spt-masuk-total').innerText = 'Rp ' + ubahKeFormatRupiah(wadahPajak.Total.in); document.getElementById('spt-keluar-total').innerText = 'Rp ' + ubahKeFormatRupiah(wadahPajak.Total.out); document.getElementById('spt-sisa-total').innerText = 'Rp ' + ubahKeFormatRupiah(wadahPajak.Total.in - wadahPajak.Total.out);
         document.getElementById('blok-spt-pajak').style.display = 'block';
     }
 
@@ -1568,90 +1172,55 @@ if (!PIN_SISTEM) {
     }
 
     function muatTabelAuditTrail() {
-        let badanTabel = document.getElementById('tabel-audit-body'); 
-        badanTabel.innerHTML = '';
+        let badanTabel = document.getElementById('tabel-audit-body'); badanTabel.innerHTML = '';
         [...basisDataAudit].reverse().forEach(log => {
             badanTabel.innerHTML += `<tr>
-                <td>${log.waktu}</td>
-                <td><b>${log.nama}</b></td>
-                <td>${log.id || '-'}</td>
-                <td>${log.aksi}</td>
+                <td style="font-size:12px">${log.waktu}</td>
+                <td><span style="background:var(--bg-app); padding:3px 6px; border-radius:4px; font-size:11px;">${log.nama}</span></td>
+                <td style="font-size:11px; color:var(--text-muted);">${log.id || '-'}</td>
+                <td style="font-weight:600">${log.aksi}</td>
                 <td>Rp ${ubahKeFormatRupiah(log.dana)}</td>
             </tr>`;
         });
     }
 
     function kembalikanOtomatis() {
-        if(confirm("Apakah bapak/ibu pengurus ingin mengembalikan data dari cadangan otomatis terakhir?")) {
+        if(confirm("Pulihkan dari cadangan otomatis terakhir?")) {
             try {
-                let berkasCadangan = JSON.parse(localStorage.getItem('aliman_auto_salinan_data'));
-                if(berkasCadangan && Array.isArray(berkasCadangan.kas)) {
-                    basisDataKas = berkasCadangan.kas;
-                    basisDataAudit = berkasCadangan.audit || [];
-                    // TAMBAHAN: Memulihkan juga data barang jika ada di cadangan
-                    basisDataBarang = berkasCadangan.barang || [];
-                    simpanKePenyimpananLokal();
-                    tulisLogAudit("MEMULIHKAN DATA CADANGAN", 0, "OTOMATIS");
-                    alert("Berhasil: Semua rekaman kas dan barang telah dipulihkan!");
-                    window.location.reload();
-                } else {
-                    alert("Pemberitahuan: Belum ada rekaman cadangan otomatis di HP/Laptop ini.");
-                }
-            } catch(e) {
-                alert("Gagal memulihkan cadangan.");
-            }
+                let bk = JSON.parse(localStorage.getItem('aliman_auto_salinan_data'));
+                if(bk && Array.isArray(bk.kas)) {
+                    basisDataKas = bk.kas; basisDataAudit = bk.audit || []; basisDataBarang = bk.barang || [];
+                    simpanKePenyimpananLokal(); tulisLogAudit("RESTORE AUTO BACKUP", 0, "OTOMATIS"); alert("Berhasil dipulihkan!"); window.location.reload();
+                } else { alert("Belum ada backup otomatis."); }
+            } catch(e) { alert("Gagal memulihkan."); }
         }
     }
 
     function unduhFormatExcel() {
-        let dataTeksCsv = "data:text/csv;charset=utf-8,Nomor Catatan,Tanggal Hari,Aliran Arus,Pilihan Kas,Jumlah Uang Rupiah,Penjelasan Pembayaran Uraian\n";
-        [...basisDataKas].forEach(function(r) {
-            let gabungBaris = `${r.id},${r.tanggal},${r.jenis},Kas ${r.rekening},${r.nominal},"${r.uraian}"`;
-            dataTeksCsv += gabungBaris + "\n";
-        });
-        let tautanUnduh = document.createElement("a");
-        tautanUnduh.setAttribute("href", encodeURI(dataTeksCsv));
-        tautanUnduh.setAttribute("download", `Laporan_Buku_Kas_AlIman_${new Date().toISOString().split('T')[0]}.csv`);
-        document.body.appendChild(tautanUnduh);
-        tautanUnduh.click();
-        document.body.removeChild(tautanUnduh);
+        let csv = "data:text/csv;charset=utf-8,ID,Tanggal,Jenis,Kas,Nominal,Uraian\n";
+        [...basisDataKas].forEach(r => csv += `${r.id},${r.tanggal},${r.jenis},${r.rekening},${r.nominal},"${r.uraian}"\n`);
+        let a = document.createElement("a"); a.href = encodeURI(csv); a.download = `Laporan_Kas_${new Date().toISOString().split('T')[0]}.csv`; document.body.appendChild(a); a.click(); document.body.removeChild(a);
     }
 
     function simpanKeFileFisik() {
-        const paketBlob = new Blob([JSON.stringify({ kas: basisDataKas, audit: basisDataAudit, barang: basisDataBarang }, null, 2)], { type: "application/json" });
-        const objekTautan = document.createElement('a'); 
-        objekTautan.href = URL.createObjectURL(paketBlob);
-        objekTautan.download = `Cadangan_Kas_Masjid_AlIman_${new Date().toISOString().split('T')[0]}.json`; 
-        objekTautan.click();
-        tulisLogAudit("MEMBUAT FILE CADANGAN", 0, "-");
+        const b = new Blob([JSON.stringify({ kas: basisDataKas, audit: basisDataAudit, barang: basisDataBarang }, null, 2)], { type: "application/json" });
+        const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `Backup_Kas_${new Date().toISOString().split('T')[0]}.json`; a.click();
+        tulisLogAudit("DOWNLOAD BACKUP", 0, "-");
     }
 
     function bacaFileCadangan(e) {
-        const berkasTarget = e.target.files[0]; 
-        if(!berkasTarget) return;
-        if(!berkasTarget.name.toLowerCase().endsWith('.json')) { alert("Salah berkas! Wajib memilih file berakhiran .json"); return; }
-        
-        const pembacaBerkas = new FileReader();
-        pembacaBerkas.onload = function(evt) {
+        const f = e.target.files[0]; if(!f || !f.name.toLowerCase().endsWith('.json')) { alert("Pilih file .json"); return; }
+        const r = new FileReader();
+        r.onload = function(evt) {
             try {
-                let hasilUrai = JSON.parse(evt.target.result);
-                if(hasilUrai.kas && Array.isArray(hasilUrai.kas)) { 
-                    basisDataKas = hasilUrai.kas; 
-                    basisDataAudit = hasilUrai.audit || [];
-                    // TAMBAHAN: Membaca file cadangan barang jika tersedia 
-                    basisDataBarang = hasilUrai.barang || [];
-                    simpanKePenyimpananLokal(); 
-                    tulisLogAudit("RESTORE FILE CADANGAN", 0, "-"); 
-                    alert("Berhasil: Semua kas dari file cadangan telah dimasukkan kembali!"); 
-                    window.location.reload(); 
-                } else { 
-                    alert("Isi dalam file cadangan tidak sesuai!"); 
-                }
-            } catch(err) { 
-                alert("File rusak atau korup, tidak dapat dibaca!"); 
-            }
+                let res = JSON.parse(evt.target.result);
+                if(res.kas && Array.isArray(res.kas)) { 
+                    basisDataKas = res.kas; basisDataAudit = res.audit || []; basisDataBarang = res.barang || [];
+                    simpanKePenyimpananLokal(); tulisLogAudit("RESTORE FILE", 0, "-"); alert("Berhasil direstore!"); window.location.reload(); 
+                } else { alert("Isi file salah!"); }
+            } catch(err) { alert("File rusak!"); }
         };
-        pembacaBerkas.readAsText(berkasTarget);
+        r.readAsText(f);
     }
 </script>
 </body>
