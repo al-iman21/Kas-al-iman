@@ -175,13 +175,14 @@
             box-shadow: var(--shadow-soft); position: relative; overflow: hidden;
             border: 1px solid rgba(0,0,0,0.03);
         }
-        /* Gradient khusus untuk Kas Umum agar terlihat seperti kartu utama */
+        
+        /* PERBAIKAN WARNA TEKS KARTU UTAMA */
         .kartu-utama {
             background: linear-gradient(135deg, var(--secondary) 0%, #1e293b 100%);
             color: white;
         }
-        .kartu-utama .tulisan-kecil { color: #94a3b8; }
-        .kartu-utama .angka-saldo-besar { color: white; }
+        .kartu-utama span.tulisan-kecil { color: #cbd5e1 !important; } /* Warna abu-abu terang */
+        .kartu-utama h2.angka-saldo-besar { color: #ffffff !important; } /* Warna putih solid dipaksa */
         
         .kartu-saldo-putih::after {
             content: ''; position: absolute; top: -20px; right: -20px; width: 100px; height: 100px;
@@ -736,7 +737,7 @@
     // PERBAIKAN PIN: PIN DITETAPKAN DI SINI (HARDCODED)
     // Silakan ganti "123456" dengan PIN yang Anda inginkan.
     // ==========================================
-    const PIN_SISTEM = "070707"; 
+    const PIN_SISTEM = "123456"; 
 
     const FIREBASE_ROOT = 'masjidAlIman';
     const FIREBASE_TRANSAKSI = FIREBASE_ROOT + '/transaksi';
